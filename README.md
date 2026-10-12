@@ -31,7 +31,7 @@ Each community that installs the app uses its **own free keys**, which the app a
 | IGDB (Twitch) | games | yes (Client ID and Client Secret) |
 | Open Library, AniList, MusicBrainz + Cover Art Archive | books, anime, albums (optional categories) | no |
 
-Without keys the app still works with titles added by hand. Guides: [how to get the keys](docs/api-keys.en.md) and [how to set them up](docs/how-to-set-up.en.md) (also in Portuguese: [chaves](docs/chaves-de-api.pt.md), [configurar](docs/como-configurar.pt.md)).
+The app admins are chosen when the app is installed (the "App admins" setting), and the community owner is always an admin. When a service rejects a saved key, the app warns the admins in the app log inside Root. Without keys the app still works with titles added by hand. Guides: [how to get the keys](docs/api-keys.en.md) and [how to set them up](docs/how-to-set-up.en.md) (also in Portuguese: [chaves](docs/chaves-de-api.pt.md), [configurar](docs/como-configurar.pt.md)).
 
 The privacy policy of the published app is in [docs/privacy-policy.md](docs/privacy-policy.md): the developer receives and collects nothing; scores and comments live in the community's database hosted by Root.
 
@@ -39,7 +39,7 @@ The privacy policy of the published app is in [docs/privacy-policy.md](docs/priv
 
 | Folder | What it has |
 |---|---|
-| `networking/src/titles.proto` | The contract between the client and the server (protobuf over the Root SDK RPC). After changing it, run `npm run build` |
+| `networking/src/titles.proto` | The contract between the client and the server (protobuf over the Root SDK RPC). After changing it, run `npm run build`. Root limits every message to 256 KiB, so any call that returns a collection has to be paged (the title list is) |
 | `server/src` | Rules, validation and the SQLite storage (`titleService.ts`, `*Repository.ts`) |
 | `server/src/providers` | TMDB, OMDb, IGDB/Twitch, Open Library, AniList and MusicBrainz clients (timeouts, pacing, clear errors) |
 | `server/src/access.ts` | Who is an admin of the app |

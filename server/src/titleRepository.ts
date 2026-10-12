@@ -145,6 +145,30 @@ export class TitleRepository {
     return titleRows.map((row) => toTitle(row, ratingsByTitle.get(row.id) ?? [], episodes.get(row.id), reactions, statuses.get(row.id)));
   }
 
+  // Uma página da lista, do título mais novo para o mais antigo. beforeId = 0 começa pelo mais novo; senão vem só o
+  // que tem ID menor que beforeId. O Root limita cada mensagem a 256 KiB, então a lista não pode ir toda de uma vez.
+  public async listPage(beforeId: number, limit: number): Promise<Title[]> {
+    const query = knex<TitleRow>(titlesTable).select().orderBy("id", "desc").limit(limit);
+    if (beforeId > 0) query.where("id", "<", beforeId);
+    const titleRows = await query;
+    if (titleRows.length === 0) return [];
+
+    const ids = titleRows.map((row) => row.id);
+    const ratingRows = await knex<RatingRow>(ratingsTable).whereIn("title_id", ids).select();
+
+    const ratingsByTitle = new Map<number, RatingRow[]>();
+    for (const row of ratingRows) {
+      const list = ratingsByTitle.get(row.title_id) ?? [];
+      list.push(row);
+      ratingsByTitle.set(row.title_id, list);
+    }
+
+    const episodes = await episodeSummaries(ids);
+    const reactions = await reactionRepository.forTitles(ids);
+    const statuses = await watchRepository.forTitles(ids);
+    return titleRows.map((row) => toTitle(row, ratingsByTitle.get(row.id) ?? [], episodes.get(row.id), reactions, statuses.get(row.id)));
+  }
+
   public async get(id: number): Promise<Title | null> {
     const row = await knex<TitleRow>(titlesTable).where({ id }).first();
     if (!row) return null;

@@ -47,6 +47,7 @@ import { watchRepository } from "./watchRepository";
 import { CachedSeason, EpisodeData, episodeRepository } from "./episodeRepository";
 import { deleteSetting, getSetting, setSetting, settingKeys } from "./settingsRepository";
 import { adminState, claimAdmin } from "./access";
+import { warnAdmins } from "./communityLog";
 import { ProviderError, ProviderErrorCode } from "./providers/http";
 import { Lang, TmdbKind, mergeSearchResults, tmdbCheck, tmdbDetails, tmdbSearch, tmdbSeasonEpisodes, tmdbSeasons } from "./providers/tmdb";
 import { omdbCheck, omdbRating, omdbSeasonRatings } from "./providers/omdb";
@@ -71,6 +72,9 @@ const detailsBatchSize = 10;
 // Só para testes: pausa entre uma consulta e outra ao OMDb.
 export const tuning = {
   pauseMs: 250,
+  // Cada página da lista tem no máximo 60 títulos e cerca de 180 KB (o limite do Root é 256 KiB por mensagem).
+  listPageTitles: 60,
+  listPageBytes: 180_000,
   // Nomes, datas e notas dos episódios são atualizados depois de uma semana (entram os episódios novos).
   episodeMaxAgeMs: imdbMaxAgeMs,
   // Se algum episódio ainda não tem nota no IMDb, tenta de novo depois de 6 horas.
@@ -217,6 +221,13 @@ const searchStatuses: Record<ProviderErrorCode, SearchStatus> = {
 
 // Chaves que o serviço externo recusou: aparecem como "inválida" nas configurações até serem trocadas.
 const keyProblems = { tmdb: false, omdb: false, igdb: false };
+const keyLabels = { tmdb: "TMDB", omdb: "OMDb", igdb: "IGDB (Twitch)" };
+
+// Marca a chave como recusada e avisa os admins no log do app (o mesmo aviso só se repete depois de 6 horas).
+function flagKeyProblem(name: keyof typeof keyProblems): void {
+  keyProblems[name] = true;
+  void warnAdmins(`key:${name}`, `${keyLabels[name]} rejected the saved key. An app admin needs to replace it in the Settings screen of Couch Critics.`);
+}
 
 async function igdbCredentials(): Promise<IgdbCredentials | null> {
   const clientId = await getSetting(settingKeys.igdbClientId);
@@ -255,11 +266,31 @@ export class TitleService extends TitleServiceBase {
     while (this.background.size > 0) await Promise.all([...this.background]);
   }
 
-  async list(_request: TitleListRequest, _client: Client): Promise<TitleListResponse> {
-    const titles = await titleRepository.list();
-    void this.refreshImdbRatings();
-    this.keepInBackground(this.fillMissingDetails());
-    return { titles };
+  // A lista vai em páginas, do título mais novo para o mais antigo: o Root recusa mensagens com mais de 256 KiB
+  // (medido na mensagem serializada), e uma comunidade com algumas centenas de títulos passaria disso.
+  async list(request: TitleListRequest, _client: Client): Promise<TitleListResponse> {
+    const rows = await titleRepository.listPage(request.beforeId ?? 0, tuning.listPageTitles + 1);
+
+    const titles: Title[] = [];
+    let bytes = 0;
+    let cut = false;
+    for (const title of rows.slice(0, tuning.listPageTitles)) {
+      const size = Title.toBinary(title).length + 8;
+      if (titles.length > 0 && bytes + size > tuning.listPageBytes) {
+        cut = true;
+        break;
+      }
+      titles.push(title);
+      bytes += size;
+    }
+    const hasMore = cut || rows.length > tuning.listPageTitles;
+
+    // O trabalho em segundo plano começa quando a tela pede a primeira página.
+    if (!request.beforeId) {
+      void this.refreshImdbRatings();
+      this.keepInBackground(this.fillMissingDetails());
+    }
+    return { titles, hasMore, nextBeforeId: hasMore ? titles[titles.length - 1].id : 0 };
   }
 
   async create(request: TitleCreateRequest, client: Client): Promise<TitleCreateResponse> {
@@ -328,7 +359,7 @@ export class TitleService extends TitleServiceBase {
       };
     } catch (error) {
       if (!(error instanceof ProviderError)) throw error;
-      if (error.code === "invalid_key") keyProblems.tmdb = true;
+      if (error.code === "invalid_key") flagKeyProblem("tmdb");
       return { status: searchStatuses[error.code], results: [] };
     }
   }
@@ -449,7 +480,7 @@ export class TitleService extends TitleServiceBase {
       };
     } catch (error) {
       if (!(error instanceof ProviderError)) throw error;
-      if (error.code === "invalid_key") keyProblems.igdb = true;
+      if (error.code === "invalid_key") flagKeyProblem("igdb");
       return { status: searchStatuses[error.code], results: [] };
     }
   }
@@ -470,7 +501,7 @@ export class TitleService extends TitleServiceBase {
       game = await igdbDetails(externalId, credentials);
     } catch (error) {
       if (error instanceof ProviderError) {
-        if (error.code === "invalid_key") keyProblems.igdb = true;
+        if (error.code === "invalid_key") flagKeyProblem("igdb");
         fail(sourceErrorCodes.igdb[error.code], error.message);
       }
       throw error;
@@ -529,7 +560,7 @@ export class TitleService extends TitleServiceBase {
       ]);
     } catch (error) {
       if (error instanceof ProviderError) {
-        if (error.code === "invalid_key") keyProblems.tmdb = true;
+        if (error.code === "invalid_key") flagKeyProblem("tmdb");
         fail(sourceErrorCodes.tmdb[error.code], error.message);
       }
       throw error;
@@ -572,7 +603,7 @@ export class TitleService extends TitleServiceBase {
         await titleRepository.updateImdb(created.id, rating?.rating ?? 0, rating?.votes ?? 0, Date.now());
         title = (await titleRepository.get(created.id)) ?? created;
       } catch (error) {
-        if (error instanceof ProviderError && error.code === "invalid_key") keyProblems.omdb = true;
+        if (error instanceof ProviderError && error.code === "invalid_key") flagKeyProblem("omdb");
       }
     }
 
@@ -729,7 +760,7 @@ export class TitleService extends TitleServiceBase {
       };
     } catch (error) {
       if (!(error instanceof ProviderError)) throw error;
-      if (error.code === "invalid_key") keyProblems.tmdb = true;
+      if (error.code === "invalid_key") flagKeyProblem("tmdb");
       return unavailable(searchStatuses[error.code]);
     }
   }
@@ -881,7 +912,7 @@ export class TitleService extends TitleServiceBase {
         // O IMDb não conhece essa temporada: anota a consulta e volta ao TMDB como nota alternativa.
         await episodeRepository.saveImdbRatings(title.id, season, new Map(), now);
       } else {
-        if (error.code === "invalid_key") keyProblems.omdb = true;
+        if (error.code === "invalid_key") flagKeyProblem("omdb");
         this.imdbAttempts.set(attemptKey, now);
       }
     }
@@ -1058,7 +1089,7 @@ export class TitleService extends TitleServiceBase {
           if (!(error instanceof ProviderError)) break;
 
           if (error.code === "invalid_key") {
-            keyProblems[item.kind === TitleKind.GAME ? "igdb" : "tmdb"] = true;
+            flagKeyProblem(item.kind === TitleKind.GAME ? "igdb" : "tmdb");
             break;
           }
           if (error.code === "rate_limited" || error.code === "unavailable") break;
@@ -1099,7 +1130,7 @@ export class TitleService extends TitleServiceBase {
           if (!(error instanceof ProviderError)) break;
 
           if (error.code === "invalid_key") {
-            keyProblems.omdb = true;
+            flagKeyProblem("omdb");
             break;
           }
           if (error.code === "rate_limited" || error.code === "unavailable") break;

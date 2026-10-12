@@ -26,7 +26,7 @@ Observação: as pastas e os pacotes internos ainda se chamam `notas-app` (nome 
 - O título aberto mostra sinopse e gêneros no idioma da pessoa, e as plataformas nos jogos. Títulos antigos recebem esses dados sozinhos, aos poucos, quando as chaves do TMDB e do IGDB estão configuradas. O IGDB só tem sinopse em inglês.
 - **Livros** (Open Library), **animes** (AniList) e **álbuns** (MusicBrainz): categorias opcionais, sem chave de API. O admin liga as que quiser em Configurações, e cada uma ganha uma aba, busca com capa, autor ou artista, sinopse e gêneros.
 - **Importar notas (CSV)** (rodapé): cada membro traz as próprias notas de uma planilha (vírgula, ponto e vírgula ou tab; o arquivo exportado pelo app também serve). O app casa cada linha com um título da busca, mostra o que achou para conferir e importa uma linha por vez. Linhas com nota ou categoria inválidas são ignoradas com o motivo.
-- A lista mostra 30 títulos por vez, com "Mostrar mais". Com 2.000 títulos e 10.000 notas, o servidor lista tudo em cerca de 70 ms.
+- A lista chega do servidor em páginas (o Root limita cada mensagem a 256 KiB, e uma comunidade com algumas centenas de títulos passaria disso) e a tela mostra 30 títulos por vez, com "Mostrar mais".
 - **Reações** nas notas dos outros (👍 😂 🔥 😮 ❤️), nos títulos e nos episódios. Clicar de novo no mesmo emoji tira a reação.
 - **Quero ver / vendo / já vi** (nos jogos: quero jogar / jogando / já joguei): cada pessoa marca o seu estado, vê quem marcou o quê, e o filtro da lista mostra só o que está em cada estado.
 - **Estatísticas** (rodapé), em duas abas. *Comunidade:* quem pensa parecido (compatibilidade entre membros com pelo menos 3 títulos em comum), notas por membro, os títulos que mais dividiram a turma e como as notas se distribuem. *Meu ano:* a retrospectiva de cada pessoa por ano (notas dadas, média, Peak e Rock Bottom, as mais altas, a opinião mais diferente da turma e o mês mais movimentado). A retrospectiva usa a data de cada nota; notas anteriores à 1.2 não têm data e não entram.
@@ -38,12 +38,12 @@ Observação: as pastas e os pacotes internos ainda se chamam `notas-app` (nome 
 
 A busca usa o TMDB (filmes e séries) e o IGDB (jogos), e a nota do IMDb vem pelo OMDb. Livros, animes e álbuns usam a Open Library, a AniList e a MusicBrainz, que são gratuitas e **não precisam de chave**. As chaves são gratuitas e **cada comunidade usa as suas**. O IGDB é da Twitch: a chave é um par, o Client ID e o Client Secret de um aplicativo criado em dev.twitch.tv (a conta precisa de verificação em duas etapas):
 
-1. Quem instala o app escolhe, na instalação, quem administra o Couch Critics (pessoas ou cargos). Se ninguém for escolhido, quem salvar a primeira chave vira o admin.
+1. Quem instala o app escolhe, na instalação, quem administra o Couch Critics (pessoas ou cargos). O dono da comunidade também é sempre admin. Se ninguém for escolhido, quem salvar a primeira chave vira o admin.
 2. Os admins veem o botão **Configurações** no topo e colam as chaves lá. Elas ficam no banco da comunidade e nunca voltam para a tela.
 3. Passo a passo para conseguir as chaves: [docs/chaves-de-api.pt.md](docs/chaves-de-api.pt.md) (português) e [docs/api-keys.en.md](docs/api-keys.en.md) (inglês).
 4. Passo a passo para colocar as chaves no app, com o significado de cada mensagem e solução de problemas: [docs/como-configurar.pt.md](docs/como-configurar.pt.md) (português) e [docs/how-to-set-up.en.md](docs/how-to-set-up.en.md) (inglês).
 
-Sem chaves o app funciona, só com títulos adicionados à mão. A tela "Sobre e créditos" traz o aviso e o logo exigidos pelo TMDB e o crédito do IGDB.
+Quando um serviço recusa uma chave salva, o app avisa os admins no log do app dentro do Root. Sem chaves o app funciona, só com títulos adicionados à mão. A tela "Sobre e créditos" traz o aviso e o logo exigidos pelo TMDB e o crédito do IGDB.
 
 Jogos: o servidor pede à Twitch um token de acesso com o Client ID e o Client Secret (guardado só na memória, renovado sozinho quando vence) e consulta o IGDB. A busca deixa de fora edições, DLCs e expansões. O Client Secret fica no banco da comunidade e nunca volta para a tela.
 

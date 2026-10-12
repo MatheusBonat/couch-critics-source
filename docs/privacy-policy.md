@@ -32,7 +32,7 @@ No advertising, no analytics and no tracking. It does not sell or share data, an
 
 ## Deleting data
 
-A title and its scores are deleted when the person who added it removes it. A member can remove their own score at any time. Everything is deleted when the community uninstalls the app.
+A title and its scores are deleted when the person who added it, or an app admin, removes it. A member can remove their own scores and comments at any time. To ask for a correction or deletion that the app does not allow, message MalphasW on Root. When a community uninstalls the app, the app stops having access to that community's data. The data is stored by Root, and what happens to it after that is governed by Root's own terms and policies.
 
 ## Changes
 
@@ -78,7 +78,7 @@ Não há anúncios, análise de uso nem rastreamento. O app não vende nem compa
 
 ## Exclusão de dados
 
-Um título e as suas notas são apagados quando quem o adicionou o remove. Cada membro pode remover a própria nota quando quiser. Tudo é apagado quando a comunidade desinstala o app.
+Um título e as suas notas são apagados quando quem o adicionou, ou um admin do app, o remove. Cada membro pode remover as próprias notas e comentários quando quiser. Para pedir uma correção ou exclusão que o app não permite, mande uma mensagem para MalphasW no Root. Quando uma comunidade desinstala o app, o app deixa de ter acesso aos dados dela. Os dados ficam guardados no Root, e o que acontece com eles depois disso segue os termos e as políticas do próprio Root.
 
 ## Mudanças
 

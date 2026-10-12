@@ -47,6 +47,29 @@ export function AboutPanel({ onClose }: Props) {
         <p>{t.about.aniListNotice}</p>
         <p>{t.about.musicBrainzNotice}</p>
       </div>
+
+      <div className="credit">
+        <p>{t.about.independent}</p>
+        <p>{t.about.rules}</p>
+        <p>
+          <a href={t.about.termsUrl} target="_blank" rel="noopener noreferrer">
+            {t.about.termsLink}
+          </a>
+          {" · "}
+          <a href={t.about.guidelinesUrl} target="_blank" rel="noopener noreferrer">
+            {t.about.guidelinesLink}
+          </a>
+        </p>
+      </div>
+
+      <div className="credit">
+        <p>{t.about.privacy}</p>
+        <p>
+          <a href={t.about.privacyUrl} target="_blank" rel="noopener noreferrer">
+            {t.about.privacyLink}
+          </a>
+        </p>
+      </div>
     </section>
   );
 }

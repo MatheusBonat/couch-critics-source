@@ -1,4 +1,4 @@
-import { KeyboardEvent, useEffect, useMemo, useState } from "react";
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { rootClient } from "@rootsdk/client-app";
 import { titleServiceClient, TitleServiceClientEvent } from "@notas-app/gen-client";
 import { KeyStatus, Title, TitleCreatedEvent, TitleDeletedEvent, TitleKind, TitleUpdatedEvent } from "@notas-app/gen-shared";
@@ -24,6 +24,9 @@ import {
   sortTitles,
   titleMatches,
   upsertTitle,
+  applyTitleEvents,
+  loadAllTitles,
+  TitleEvent,
 } from "./lib";
 
 // Quantos títulos a lista mostra de cada vez. "Mostrar mais" abre os próximos.
@@ -83,12 +86,21 @@ const App = () => {
     [titles, visibleKinds],
   );
 
+  // Mudanças em tempo real que chegam enquanto a lista ainda está sendo carregada em páginas ficam guardadas aqui
+  // e entram por cima dela quando termina.
+  const arrivedDuringLoad = useRef<TitleEvent[] | null>(null);
+
   const load = () => {
     setLoadFailure(null);
-    titleServiceClient
-      .list({})
-      .then((response) => setTitles(response.titles))
-      .catch((error) => setLoadFailure({ error }));
+    arrivedDuringLoad.current = [];
+    loadAllTitles((beforeId) => titleServiceClient.list({ beforeId }))
+      .then((all) => {
+        setTitles(applyTitleEvents(all, arrivedDuringLoad.current ?? []));
+      })
+      .catch((error) => setLoadFailure({ error }))
+      .finally(() => {
+        arrivedDuringLoad.current = null;
+      });
   };
 
   useEffect(load, []);
@@ -118,13 +130,15 @@ const App = () => {
 
   // Mudanças feitas por outros membros chegam em tempo real.
   useEffect(() => {
-    const onCreated = (event: TitleCreatedEvent) => {
-      if (event.title) setTitles((current) => (current ? upsertTitle(current, event.title!) : current));
+    const onUpserted = (title: Title | undefined) => {
+      if (!title) return;
+      if (arrivedDuringLoad.current) arrivedDuringLoad.current.push({ type: "upsert", title });
+      setTitles((current) => (current ? upsertTitle(current, title) : current));
     };
-    const onUpdated = (event: TitleUpdatedEvent) => {
-      if (event.title) setTitles((current) => (current ? upsertTitle(current, event.title!) : current));
-    };
+    const onCreated = (event: TitleCreatedEvent) => onUpserted(event.title);
+    const onUpdated = (event: TitleUpdatedEvent) => onUpserted(event.title);
     const onDeleted = (event: TitleDeletedEvent) => {
+      if (arrivedDuringLoad.current) arrivedDuringLoad.current.push({ type: "delete", id: event.id });
       setTitles((current) => (current ? current.filter((title) => title.id !== event.id) : current));
       setOpenId((current) => (current === event.id ? null : current));
     };

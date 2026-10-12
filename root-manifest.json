@@ -1,6 +1,6 @@
 {
   "id": "ADHNuFPEiQmHeHwPplhEyQ",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "package": {
     "client": {
       "deploy": "client/dist"
@@ -25,7 +25,7 @@
           {
             "key": "admins",
             "title": "App admins",
-            "description": "People and roles who can set up the data sources (the TMDB, OMDb and IGDB keys).",
+            "description": "People and roles who can set up the data sources (the TMDB, OMDb and IGDB keys), turn on books, anime and albums, and remove comments and titles. The community owner is always an admin.",
             "required": true,
             "confirmation": "Save",
             "roleOrMember": {

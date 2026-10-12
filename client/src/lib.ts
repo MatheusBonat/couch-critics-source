@@ -97,6 +97,44 @@ export function upsertTitle(titles: Title[], title: Title): Title[] {
   return exists ? titles.map((item) => (item.id === title.id ? title : item)) : [...titles, title];
 }
 
+export interface TitlePage {
+  titles: Title[];
+  hasMore: boolean;
+  nextBeforeId: number;
+}
+
+// Pede a lista em páginas (o Root limita cada mensagem a 256 KiB) e junta tudo, do mais novo para o mais antigo.
+export async function loadAllTitles(fetchPage: (beforeId: number) => Promise<TitlePage>): Promise<Title[]> {
+  const all: Title[] = [];
+  const seen = new Set<number>();
+  let beforeId = 0;
+
+  // O limite de voltas é só uma proteção contra um servidor que nunca termina.
+  for (let round = 0; round < 2000; round++) {
+    const page = await fetchPage(beforeId);
+    for (const title of page.titles) {
+      if (seen.has(title.id)) continue;
+      seen.add(title.id);
+      all.push(title);
+    }
+    if (!page.hasMore || page.nextBeforeId === 0 || page.nextBeforeId === beforeId) break;
+    beforeId = page.nextBeforeId;
+  }
+  return all;
+}
+
+// O que mudou em tempo real enquanto a lista ainda estava chegando.
+export type TitleEvent = { type: "upsert"; title: Title } | { type: "delete"; id: number };
+
+// Aplica as mudanças, na ordem em que chegaram, por cima da lista carregada: a mudança é mais nova que a página.
+export function applyTitleEvents(titles: Title[], events: TitleEvent[]): Title[] {
+  let result = titles;
+  for (const event of events) {
+    result = event.type === "upsert" ? upsertTitle(result, event.title) : result.filter((item) => item.id !== event.id);
+  }
+  return result;
+}
+
 // O servidor manda os erros de regra como "codigo|mensagem" (ver fail() em server/src/titleService.ts).
 // O código escolhe o texto no idioma do usuário. Qualquer outro erro (rede, banco, falha interna)
 // vira a mensagem genérica, sem expor detalhes técnicos.

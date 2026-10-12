@@ -132,11 +132,17 @@ message TitleCreateResponse {
   Title title = 1;
 }
 
+// A lista vem em páginas, do título mais novo para o mais antigo, porque o Root limita cada mensagem a 256 KiB.
 message TitleListRequest {
+  // Só vêm os títulos com ID menor que este. 0 começa pelo mais novo.
+  uint32 before_id = 1;
 }
 
 message TitleListResponse {
   repeated Title titles = 1;
+  // Ainda há títulos mais antigos: peça de novo com before_id = next_before_id.
+  bool has_more = 2;
+  uint32 next_before_id = 3;
 }
 
 message TitleDeleteRequest {

@@ -2,7 +2,7 @@ import { ChangeEvent, useRef, useState } from "react";
 import { RatingTier, SearchResult, SearchStatus, Title, TitleKind } from "@notas-app/gen-shared";
 import { titleServiceClient } from "@notas-app/gen-client";
 import { useI18n } from "./i18n";
-import { downloadCsv, formatScore, KindInfo, kinds } from "./lib";
+import { downloadCsv, formatScore, KindInfo, kinds, loadAllTitles } from "./lib";
 import { bestMatch, Candidate, Choice, createPacer, executeImport, findLocal, ImportRow, Outcome, parseCsv, PlanItem, readRows, ReadProblem, withRateRetry } from "./importer";
 
 interface Props {
@@ -202,7 +202,7 @@ export function ImportPanel({ titles, me, defaultKind, allowedKinds, onImported,
         },
         alreadyRated: (titleId) => ratedNow.current.has(titleId) || (known.current.find((title) => title.id === titleId)?.ratings.some((rating) => rating.userId === me) ?? false),
         reload: async () => {
-          known.current = (await call(() => titleServiceClient.list({}))).titles;
+          known.current = await loadAllTitles((beforeId) => call(() => titleServiceClient.list({ beforeId })));
           return known.current;
         },
       },
