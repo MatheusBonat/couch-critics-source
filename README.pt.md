@@ -1,119 +1,256 @@
-# Couch Critics
+<div align="center">
 
-App do [Root](https://www.rootapp.com) em que os membros de uma comunidade dão nota juntos a filmes, séries, jogos, livros, animes e álbuns e veem as notas uns dos outros num só lugar.
+# 🛋️ Couch Critics
 
-English: [README.md](README.md). Licença: [MIT](LICENSE).
+**Deem nota a filmes, séries, jogos, livros, animes e álbuns com a sua comunidade e combinem a próxima noite de filme.**
+
+Um app gratuito e de código aberto para o [Root](https://www.rootapp.com). Todo mundo dá nota, todo mundo vê as notas e a turma decide junta o que ver ou jogar a seguir.
+
+[![License: MIT](https://img.shields.io/github/license/MatheusBonat/couch-critics-source?color=blue)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/MatheusBonat/couch-critics-source?color=brightgreen)](https://github.com/MatheusBonat/couch-critics-source/releases)
+[![Last commit](https://img.shields.io/github/last-commit/MatheusBonat/couch-critics-source)](https://github.com/MatheusBonat/couch-critics-source/commits/main)
+![Root app](https://img.shields.io/badge/Root-app-60a5fa)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232a?logo=react&logoColor=61dafb)
+
+[Funções](#-funções) · [Prints](#%EF%B8%8F-prints) · [Novidades](#-novidades) · [Configurar](#-configurar) · [Para desenvolvedores](#-para-desenvolvedores) · [Changelog](CHANGELOG.md) · [English](README.md)
+
+<img src="docs/screenshots/01-notes-list.png" alt="Couch Critics: a lista de notas" width="860">
+
+</div>
 
 > O Couch Critics é um projeto independente. Não é um app oficial do Root e não é patrocinado, apoiado nem certificado pelo Root, TMDB, OMDb, IGDB, Twitch, Open Library, AniList ou MusicBrainz. Veja [NOTICE.md](NOTICE.md).
 
-Observação: as pastas e os pacotes internos ainda se chamam `notas-app` (nome antigo do projeto). Isso não aparece para ninguém e não afeta o app.
+## ✨ Funções
 
-- Qualquer membro adiciona um título e dá a sua nota (0 a 10, de 0,5 em 0,5), com comentário opcional.
-- Cada membro tem uma nota por título e pode mudá-la ou removê-la.
-- Notas especiais: **Peak** (acima de 10, conta como 10 na média) e **Rock Bottom** / **Fundo do poço** (abaixo de 0, conta como 0). Na barra de nota, são as duas pontas depois do 0 e do 10.
-- Cada título mostra, na própria linha, a nota de até 4 membros (3 no celular), sem precisar abrir.
-- Filmes e séries são buscados pelo nome, em português ou inglês, com capa. A nota do IMDb aparece pequena abaixo da média da comunidade, só por curiosidade. Se o título já foi adicionado, a busca avisa e leva até ele.
-- Jogos também são buscados pelo nome (IGDB), com capa. Na tela em português aparece o nome em português quando o IGDB tem um (ex.: Deus da Guerra), e o original vem ao lado. O IGDB só tem nome em português para parte dos jogos; os outros aparecem com o nome original.
-- Quando a busca não acha, dá para adicionar à mão (sem capa; filmes e séries também ficam sem a nota do IMDb).
-- Cada título guarda o nome nos dois idiomas e mostra o do idioma da pessoa.
-- Séries do TMDB têm nota geral e, se quiserem, nota por episódio: o botão "Avaliar por episódio" lista as temporadas e os episódios (nome e data no idioma da pessoa). Cada episódio mostra a nota do IMDb ou, quando o IMDb ainda não tem, a do TMDB (sublinhada, com a explicação). A média da série usa só a nota geral; a média dos episódios aparece à parte ("Episódios: 8,6").
-- O comentário das notas (de títulos e de episódios) tem um botão de **Emojis** que coloca o emoji onde está o cursor.
-- A média e as notas de cada pessoa atualizam na hora para todos.
-- Quem adicionou um título (ou um admin do app) pode removê-lo. Títulos adicionados à mão também podem ter o nome e o ano editados.
-- Ordenar por ano (mais novo ou mais antigo) e filtrar por **Ainda não avaliei**, para ver só o que falta você dar nota.
-- Comentários podem ser marcados como **spoiler** (ficam escondidos até alguém clicar). Admins podem apagar o texto de um comentário; a nota da pessoa continua.
-- Cada nota guarda a data (aparece ao passar o mouse na nota). Notas anteriores à 1.2 ficam sem data.
-- O título aberto mostra sinopse e gêneros no idioma da pessoa, e as plataformas nos jogos. Títulos antigos recebem esses dados sozinhos, aos poucos, quando as chaves do TMDB e do IGDB estão configuradas. O IGDB só tem sinopse em inglês.
-- **Livros** (Open Library), **animes** (AniList) e **álbuns** (MusicBrainz): categorias opcionais, sem chave de API. O admin liga as que quiser em Configurações, e cada uma ganha uma aba, busca com capa, autor ou artista, sinopse e gêneros.
-- **Importar notas (CSV)** (rodapé): cada membro traz as próprias notas de uma planilha (vírgula, ponto e vírgula ou tab; o arquivo exportado pelo app também serve). O app casa cada linha com um título da busca, mostra o que achou para conferir e importa uma linha por vez. Linhas com nota ou categoria inválidas são ignoradas com o motivo.
-- A lista chega do servidor em páginas (o Root limita cada mensagem a 256 KiB, e uma comunidade com algumas centenas de títulos passaria disso) e a tela mostra 30 títulos por vez, com "Mostrar mais".
-- **Reações** nas notas dos outros (👍 😂 🔥 😮 ❤️), nos títulos e nos episódios. Clicar de novo no mesmo emoji tira a reação.
-- **Quero ver / vendo / já vi** (nos jogos: quero jogar / jogando / já joguei): cada pessoa marca o seu estado, vê quem marcou o quê, e o filtro da lista mostra só o que está em cada estado.
-- **Para ver / jogar** (visão ao lado de "Notas"): a lista da turma com tudo que alguém marcou "quero ver / jogar / ler / ouvir", de todas as categorias, com quem quer cada título. Quem tem mais gente querendo vem primeiro; dá para filtrar por categoria e por "só os que eu quero". Quando você marca "já vi" ou "joguei", o título sai só da sua lista (os outros continuam vendo; há um aviso com "Desfazer"). Dá para adicionar títulos direto dali (o título novo já entra como "quero" para quem adicionou).
-- **Noite** (visão ao lado de "Para ver / jogar"): qualquer membro cria uma noite com nome (opcional), data e hora, prazo de votação e de 2 a 8 títulos da comunidade. Cada membro tem um voto (trocável até fechar; **o voto é aberto**, todos veem quem votou em quê) e responde Vou / Talvez / Não vou. A votação fecha no prazo ou por quem criou (ou um admin); a opção mais votada vence e, em caso de empate (ou se ninguém votou), quem criou escolhe entre as empatadas. O título escolhido aparece como "Noite marcada" nas listas. Seis horas depois do início a noite passa sozinha para "aconteceu" (ou "cancelada", se o empate nunca foi resolvido), e depois dela há um atalho para marcar "já vi / joguei" e dar a nota. Limites: 5 noites abertas na comunidade e 3 por pessoa. O servidor confere prazos a cada 30 segundos e também ao listar. O app usa as notificações do Root (sem permissão no manifesto): o indicador de atividade da comunidade quando uma noite abre ou fecha e um aviso para quem disse Vou ou Talvez quando a noite é decidida e cerca de 1 hora antes do início (pode depender do Root entregar a notificação; não testado no Root real).
-- **Estatísticas** (rodapé), em duas abas. *Comunidade:* quem pensa parecido (compatibilidade entre membros com pelo menos 3 títulos em comum), notas por membro, os títulos que mais dividiram a turma e como as notas se distribuem. *Meu ano:* a retrospectiva de cada pessoa por ano (notas dadas, média, Peak e Rock Bottom, as mais altas, a opinião mais diferente da turma e o mês mais movimentado). A retrospectiva usa a data de cada nota; notas anteriores à 1.2 não têm data e não entram.
-- **Hall da fama e da vergonha** (rodapé): os títulos com mais notas Peak e com mais notas Rock Bottom.
-- **Exportar notas (CSV)** (rodapé): todas as notas da comunidade em uma planilha (nota, comentário, spoiler e data). Se o Root não permitir baixar arquivos dentro do app, o botão não terá efeito (ainda não testado no Root real).
-- Português e inglês: o botão PT/EN no topo troca o idioma. Sem escolha salva, o app segue o idioma do sistema (português para quem usa português, inglês para os demais).
+**Dar nota juntos**
+- Notas de 0 a 10 em meios pontos, com comentário opcional e botão de emojis. Duas notas especiais: **Peak** (conta 10) e **Fundo do poço** (conta 0)
+- Uma nota por membro por título. Cada linha mostra a média, a nota do IMDb e a nota dos primeiros membros
+- Reações com emoji nas notas dos outros, comentários com spoiler e nota por episódio nas séries
 
-## Fontes de dados (chaves de API)
+**Achar e adicionar títulos**
+- Busca com capa, sinopse e gêneros, em português ou inglês: filmes e séries (TMDB), jogos (IGDB) e, opcionalmente, livros (Open Library), animes (AniList) e álbuns (MusicBrainz), que não precisam de chave de API
+- Importe suas notas antigas de uma planilha (CSV) e exporte as suas
 
-A busca usa o TMDB (filmes e séries) e o IGDB (jogos), e a nota do IMDb vem pelo OMDb. Livros, animes e álbuns usam a Open Library, a AniList e a MusicBrainz, que são gratuitas e **não precisam de chave**. As chaves são gratuitas e **cada comunidade usa as suas**. O IGDB é da Twitch: a chave é um par, o Client ID e o Client Secret de um aplicativo criado em dev.twitch.tv (a conta precisa de verificação em duas etapas):
+**Decidir o que vem a seguir**
+- **Para ver / jogar**: a lista da turma com tudo que alguém quer ver, jogar, ler ou ouvir, mostrando quem quer cada um. O que você já terminou sai só da sua lista
+- **Noite**: combine uma noite de filme ou jogo. Escolha de 2 a 8 títulos, defina o prazo da votação, todo mundo vota (os votos são abertos) e diz se vai. O vencedor vira uma noite marcada, e as notificações do Root lembram quem vai
 
-1. Quem instala o app escolhe, na instalação, quem administra o Couch Critics (pessoas ou cargos). O dono da comunidade também é sempre admin. Se ninguém for escolhido, quem salvar a primeira chave vira o admin.
-2. Os admins veem o botão **Configurações** no topo e colam as chaves lá. Elas ficam no banco da comunidade e nunca voltam para a tela.
-3. Passo a passo para conseguir as chaves: [docs/chaves-de-api.pt.md](docs/chaves-de-api.pt.md) (português) e [docs/api-keys.en.md](docs/api-keys.en.md) (inglês).
-4. Passo a passo para colocar as chaves no app, com o significado de cada mensagem e solução de problemas: [docs/como-configurar.pt.md](docs/como-configurar.pt.md) (português) e [docs/how-to-set-up.en.md](docs/how-to-set-up.en.md) (inglês).
+**Conhecer a turma**
+- Quem pensa parecido com você, os títulos que racham o grupo, o seu ano em notas e o Hall da fama e da vergonha
 
-Quando um serviço recusa uma chave salva, o app avisa os admins no log do app dentro do Root. Sem chaves o app funciona, só com títulos adicionados à mão. A tela "Sobre e créditos" traz o aviso e o logo exigidos pelo TMDB e o crédito do IGDB.
+**Feito para comunidades**
+- Português e inglês, tema claro e escuro (acompanha o tema do Root), telas estreitas e atualização ao vivo para todos
+- Os admins escolhem quem configura o app, podem remover comentários e títulos e ligar ou desligar as categorias opcionais
+- Sem anúncios, sem análise de uso e sem rastreamento. O desenvolvedor nunca vê os dados de uma comunidade
 
-Jogos: o servidor pede à Twitch um token de acesso com o Client ID e o Client Secret (guardado só na memória, renovado sozinho quando vence) e consulta o IGDB. A busca deixa de fora edições, DLCs e expansões. O Client Secret fica no banco da comunidade e nunca volta para a tela.
+Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt.md).
 
-O servidor guarda as notas do IMDb e as busca de novo depois de uma semana, poucas por vez, por causa do limite de 1.000 consultas por dia do OMDb.
+## 🖼️ Prints
 
-Episódios: ao adicionar uma série, o servidor já guarda as temporadas e a primeira temporada, então abrir a lista é instantâneo. Cada temporada (TMDB para nomes e datas, OMDb para a nota do IMDb, uma consulta por temporada) é buscada ao ser aberta pela primeira vez e atualizada depois de uma semana, sem perder as notas dos membros. Enquanto algum episódio estiver sem nota do IMDb, a consulta é repetida depois de 6 horas.
+### Dar nota juntos
 
-## Estrutura
+<table>
+<tr>
+<td width="50%" valign="top">
 
-| Pasta | O que tem |
-|---|---|
-| `networking/src/titles.proto` | Contrato entre tela e servidor. Depois de mexer nele, rode `npm run build`. |
-| `server/src` | Regras, validação e banco SQLite (`titleService.ts`, `titleRepository.ts`). |
-| `server/src/providers` | Conversa com o TMDB, o OMDb e o IGDB/Twitch (tempo limite, erros claros). |
-| `server/src/access.ts` | Quem é admin do app. |
-| `server/src/nightService.ts`, `nightRepository.ts` | A Noite: criar, votar, presença, fechar, desempatar, prazos, lembretes e noites passadas (em páginas). |
-| `client/src/nights.ts` | Regras da Noite na tela (grupos, votos, empate, noite marcada, datas e formulário), com testes. |
-| `client/src` | Tela em React. Usa as variáveis de cor do Root, então acompanha o tema claro/escuro. |
-| `client/src/i18n.tsx` | Todos os textos da tela, em português e inglês. Para mudar uma frase ou acrescentar um idioma, é aqui. |
+<img src="docs/screenshots/01-notes-list.png" alt="A lista de notas" width="100%"><br>
+<b>As notas de todo mundo de relance</b><br>
+<sub>Média, nota do IMDb e a nota dos primeiros membros em cada linha, com Peak e Fundo do poço como notas especiais.</sub>
 
-## Rodar para testar
+</td>
+<td width="50%" valign="top">
 
-1. No portal dev (dev.rootapp.com), crie um app, abra-o em **My apps**, vá em **Settings** e clique em **Generate new dev token**. Coloque o ID do seu app no campo `id` de `root-manifest.json`.
-2. Copie `server/.env.example` para `server/.env` e cole o token nele, numa linha só. Cuidado para não repetir o prefixo: o token é o que vem depois do `=`. Esse arquivo fica fora do git.
+<img src="docs/screenshots/02-reactions.png" alt="Notas com comentários e reações" width="100%"><br>
+<b>Comentários, reações e uma nota por membro</b><br>
+<sub>Reações com emoji nas notas dos outros e comentário opcional em cada nota.</sub>
 
-```
-DEV_TOKEN=cole_o_token_aqui
-```
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
-3. Na pasta do projeto:
+<img src="docs/screenshots/03-spoilers.png" alt="Um comentário com spoiler escondido" width="100%"><br>
+<b>Spoilers escondidos</b><br>
+<sub>Marque o comentário como spoiler e ele só abre quando alguém clica.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/04-details.png" alt="Sinopse, gêneros e plataformas" width="100%"><br>
+<b>Sinopse, gêneros e plataformas</b><br>
+<sub>Em português ou inglês, direto das fontes de dados.</sub>
+
+</td>
+</tr>
+</table>
+
+### Achar e adicionar títulos
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/05-search.png" alt="Buscando um filme com capas" width="100%"><br>
+<b>Busca com capas</b><br>
+<sub>Filmes, séries, jogos, livros, animes e álbuns, em português ou inglês. Não achou? Adicione à mão.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/06-books.png" alt="A categoria de livros" width="100%"><br>
+<b>Livros, animes e álbuns</b><br>
+<sub>Categorias opcionais que não precisam de chave de API: o admin liga em Configurações.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/07-import-csv.png" alt="Importando notas de uma planilha" width="100%"><br>
+<b>Traga suas notas antigas</b><br>
+<sub>Escolha um CSV, confira os pares e importe. Dá para exportar as suas também.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/15-episodes.png" alt="Dando nota a uma série episódio por episódio" width="100%"><br>
+<b>Séries, episódio por episódio</b><br>
+<sub>Uma nota geral e, se quiser, uma para cada episódio.</sub>
+
+</td>
+</tr>
+</table>
+
+### Decidir o que vem a seguir
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/08-to-watch-list.png" alt="A lista Para ver / jogar da turma" width="100%"><br>
+<b>Para ver / jogar</b><br>
+<sub>O que cada um quer ver, jogar, ler ou ouvir, com quem quer cada título. Já fez? Ele sai só da sua lista.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/09-night-voting.png" alt="Uma noite com votos abertos" width="100%"><br>
+<b>Noite: vote e diga se vai</b><br>
+<sub>Escolha de 2 a 8 títulos, defina um prazo, todo mundo vota (os votos são abertos) e responde Vou / Talvez / Não vou.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/10-new-night.png" alt="Criando uma noite nova" width="100%"><br>
+<b>Qualquer membro pode combinar uma noite</b><br>
+<sub>Nome, data, prazo da votação e títulos da lista da comunidade.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/11-night-planned.png" alt="Uma noite marcada" width="100%"><br>
+<b>O vencedor vira uma noite marcada</b><br>
+<sub>Empate é desfeito por quem criou. Depois da noite, marque como visto e dê a nota.</sub>
+
+</td>
+</tr>
+</table>
+
+### Conhecer a turma
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/12-stats.png" alt="Estatísticas: quem pensa parecido" width="100%"><br>
+<b>Quem pensa parecido com você</b><br>
+<sub>Compatibilidade entre membros, os títulos que racham o grupo e como as notas se distribuem.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/13-my-year.png" alt="A retrospectiva do ano" width="100%"><br>
+<b>Seu ano em notas</b><br>
+<sub>Notas dadas, média, favoritos e o mês mais movimentado.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/14-hall-of-fame.png" alt="Hall da fama e da vergonha" width="100%"><br>
+<b>Hall da fama e da vergonha</b><br>
+<sub>Os títulos com mais notas Peak e mais notas Fundo do poço.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+
+
+</td>
+</tr>
+</table>
+
+### Bonito em qualquer lugar
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/16-light-theme.png" alt="O tema claro" width="100%"><br>
+<b>Claro e escuro</b><br>
+<sub>Acompanha o tema do seu app do Root.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/17-mobile.png" alt="No celular" width="100%"><br>
+<b>Feito para telas estreitas</b><br>
+<sub>O mesmo app no celular: notas, a lista da turma e uma noite.</sub>
+
+</td>
+</tr>
+</table>
+
+<sub>Os prints usam títulos de exemplo e nomes de membros inventados (e estão em inglês). As capas vêm do TMDB.</sub>
+
+## 🆕 Novidades
+
+**2.2.0**: a lista **Para ver / jogar** e a **Noite**, para decidir juntos o que ver ou jogar. **2.0.1**: a lista de títulos é paginada e continua funcionando com centenas de títulos. **2.0.0**: livros, animes e álbuns e importação de planilha.
+
+Veja o [CHANGELOG](CHANGELOG.md) (em inglês) e as [releases](https://github.com/MatheusBonat/couch-critics-source/releases). Clique em **Watch → Custom → Releases** nesta página para ser avisado de cada versão nova.
+
+## 🚀 Configurar
+
+1. Instale o Couch Critics na sua comunidade do Root e escolha, na instalação, quem são os admins do app. O dono da comunidade é sempre admin.
+2. Os admins abrem **Configurações** e colam as chaves gratuitas de que precisam (TMDB para filmes e séries, OMDb para a nota do IMDb, IGDB/Twitch para jogos). Livros, animes e álbuns não precisam de chave. Sem nenhuma chave o app funciona, só com títulos adicionados à mão.
+3. Todo mundo adiciona títulos, dá nota e combina noites.
+
+Passo a passo: [como conseguir as chaves](docs/chaves-de-api.pt.md) e [como configurar](docs/como-configurar.pt.md). Cada comunidade usa as **suas** chaves gratuitas, e o app avisa os admins quando um serviço recusa uma.
+
+## 🧑‍💻 Para desenvolvedores
+
+O Couch Critics é feito com o **SDK do Root**: cliente em TypeScript e React, servidor Node.js e armazenamento em SQLite.
 
 ```bash
 npm install
 npm run build
+# dev host: coloque o seu token de desenvolvimento em server/.env (veja server/.env.example) e rode
+npm run server   # dentro de server/
+npm run client   # dentro de client/
 ```
 
-4. Em um terminal, `npm run server` dentro de `server/`. Em outro, `npm run client` dentro de `client/`. A tela abre em http://localhost:5173.
+O [guia de desenvolvimento](docs/desenvolvimento.pt.md) traz a estrutura do projeto, as fontes de dados, como rodar no dev host do Root, empacotar e enviar a sua versão e o que trocar se você fizer um fork.
 
-Dicas do ambiente de teste:
+## 🤝 Feedback
 
-- A barra no topo da tela troca o usuário virtual. Abra a tela em duas janelas para simular dois membros.
-- Os usuários virtuais não têm perfil, então o nome aparece como "Membro". Numa comunidade real aparecem o apelido e a foto.
-- Os dados ficam em `server/rootsdk.sqlite3`. Apague esse arquivo (com o servidor parado) para zerar o teste.
-- O `DEV_TOKEN` vale para uma comunidade. Para testar em outra, gere um novo.
-- Se mexer no `.ts` do servidor, rode `npm run build` e reinicie o `npm run server`.
+Achou um erro ou teve uma ideia? [Abra uma issue](https://github.com/MatheusBonat/couch-critics-source/issues/new/choose). Também dá para mandar uma mensagem para **MalphasW** no Root.
 
-## Publicar a sua versão
+## 📄 Licença e créditos
 
-1. Use o ID do seu app em `root-manifest.json` e suba o `version`: o Root recusa um envio com a versão de um que já existe.
-2. Empacote e envie (o token é o de **Settings → Tokens** do portal, diferente do `DEV_TOKEN`):
+[MIT](LICENSE). Os avisos de terceiros e o que a licença não cobre (o nome e o logo do app e o logo do TMDB) estão em [NOTICE.md](NOTICE.md). A política de privacidade do app publicado está em [docs/privacy-policy.md](docs/privacy-policy.md).
 
-```bash
-npm install && npm run build
-npm run package
-npx rootsdk upload package --file ./rootapp.pkg --authToken <AUTH_TOKEN> --host dev.rootapp.com
-```
-
-Use sempre `npm run package` (e não `rootsdk build package` direto): o empacotador leva a pasta `node_modules` inteira, e `node_modules/@notas-app/server` é um atalho para `server/`, então o pacote levaria o `server/.env` (DEV_TOKEN) e o banco de testes `server/rootsdk.sqlite3` (que guarda as chaves de API coladas na tela de Configurações). O script `scripts/package.cjs` tira esses arquivos do lugar, empacota, confere o pacote (e o apaga se achar algum segredo) e devolve os arquivos. Pare o servidor de teste antes.
-
-O pacote sai com cerca de 53 MB porque leva a pasta `node_modules` inteira (inclui ferramentas só de desenvolvimento). Não encontrei limite de tamanho na documentação do Root.
-
-## Se você fizer um fork
-
-- Use o seu próprio ID de app, nome e logo. O nome "Couch Critics" e o logo não estão cobertos pela licença MIT
-- Troque o `User-Agent` em [`server/src/providers/catalog.ts`](server/src/providers/catalog.ts) para identificar o seu projeto: a MusicBrainz e a AniList pedem uma identificação própria e podem bloquear clientes abusivos
-- Mantenha a atribuição do TMDB (o logo e o aviso na tela "Sobre e créditos") se usar a API do TMDB, e siga os termos de cada serviço que usar. A maioria é só para uso não comercial
-- Troque o contato e os links da política de privacidade e dos guias
-
-## Licença
-
-[MIT](LICENSE). Os avisos de terceiros e o que a licença não cobre estão em [NOTICE.md](NOTICE.md).
+Dados e capas: [TMDB](https://www.themoviedb.org), [OMDb](https://www.omdbapi.com), [IGDB](https://www.igdb.com) (pela Twitch), [Open Library](https://openlibrary.org), [AniList](https://anilist.co), [MusicBrainz](https://musicbrainz.org) e [Cover Art Archive](https://coverartarchive.org). *This product uses the TMDB API but is not endorsed or certified by TMDB.*

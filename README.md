@@ -1,102 +1,256 @@
-# Couch Critics
+<div align="center">
 
-A [Root](https://www.rootapp.com) app where the members of a community rate movies, series, games, books, anime and albums together and see each other's scores in one place.
+# 🛋️ Couch Critics
 
-Português: [README.pt.md](README.pt.md)
+**Rate movies, series, games, books, anime and albums with your community, and plan the next movie night.**
+
+A free, open source [Root](https://www.rootapp.com) app. Everyone rates, everyone sees the scores, and the group decides what to watch or play next.
+
+[![License: MIT](https://img.shields.io/github/license/MatheusBonat/couch-critics-source?color=blue)](LICENSE)
+[![Latest release](https://img.shields.io/github/v/release/MatheusBonat/couch-critics-source?color=brightgreen)](https://github.com/MatheusBonat/couch-critics-source/releases)
+[![Last commit](https://img.shields.io/github/last-commit/MatheusBonat/couch-critics-source)](https://github.com/MatheusBonat/couch-critics-source/commits/main)
+![Root app](https://img.shields.io/badge/Root-app-60a5fa)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-20232a?logo=react&logoColor=61dafb)
+
+[Features](#-features) · [Screenshots](#%EF%B8%8F-screenshots) · [What's new](#-whats-new) · [Set it up](#-set-it-up) · [For developers](#-for-developers) · [Changelog](CHANGELOG.md) · [Português](README.pt.md)
+
+<img src="docs/screenshots/01-notes-list.png" alt="Couch Critics: the list of ratings" width="860">
+
+</div>
 
 > Couch Critics is an independent project. It is not an official Root app, and it is not sponsored, endorsed or certified by Root, TMDB, OMDb, IGDB, Twitch, Open Library, AniList or MusicBrainz. See [NOTICE.md](NOTICE.md).
 
-## Features
+## ✨ Features
 
-- Scores from 0 to 10 in half points, with an optional comment (emoji picker included). Two special ratings: **Peak** (above 10, counts as 10) and **Rock Bottom** (below 0, counts as 0)
-- One score per member per title, editable at any time. Each row shows the average, the IMDb rating and the first members' scores without opening it
-- Search by name, in English or Portuguese, with covers, synopsis and genres: movies and series (TMDB), games (IGDB, with platforms), and optional books (Open Library), anime (AniList) and albums (MusicBrainz), which need no API key. Titles can also be added by hand
-- Series: an overall score and, optionally, a score per episode (with the IMDb rating of each episode)
-- Spoiler comments, emoji reactions on other people's ratings, and "want to watch / watching / watched" per member
-- "To watch / play" view: the group's list of everything someone marked "want to watch / play / read / listen to", across all categories, with who wants each title. Titles that more people want come first; filter by category or "only the ones I want". When you mark a title as watched or played, it leaves only your own list (everyone else still sees it; there is an "Undo" notice). You can add titles straight from there (the new title is marked "want" for whoever added it)
-- "Night" view: any member creates a night with an optional name, date and time, a voting deadline and 2 to 8 titles from the community. Each member has one vote (changeable until it closes; **votes are public**, everyone sees who voted for what) and answers Going / Maybe / Not going. The voting closes at the deadline or when the creator (or an admin) closes it; the most voted option wins and, on a tie (or when nobody voted), the creator picks among the tied ones. The chosen title is flagged as "Night planned" in the lists. Six hours after the start the night moves on its own to "happened" (or "canceled" if a tie was never resolved), and after it there is a shortcut to mark the title as watched/played and rate it. Limits: 5 open nights in the community and 3 per person. The server checks deadlines every 30 seconds and when listing. The app uses Root's notifications (no manifest permission): the community activity indicator when a night opens or closes, and a notification to the members who said Going or Maybe when the night is decided and about 1 hour before it starts (delivery depends on Root; not tested in the real Root yet)
-- Statistics: who thinks like you, the titles that split the group, a yearly recap per member, and a Hall of Fame and Shame
-- Filters ("not rated by me", watch status), sort by score, date or year, and a list that shows 30 titles at a time
-- Import your ratings from a CSV spreadsheet (titles are matched with the search before importing) and export them
-- Moderation: admins can remove comments and titles; titles added by hand can be edited
-- English and Portuguese, light and dark themes (it follows the Root theme), narrow screens
-- Live updates for every member
+**Rate together**
+- Scores from 0 to 10 in half points, with an optional comment and an emoji picker. Two special ratings: **Peak** (counts as 10) and **Rock Bottom** (counts as 0)
+- One score per member per title. Every row shows the average, the IMDb rating and the first members' scores
+- Emoji reactions on other people's ratings, spoiler comments, and a score for each episode of a series
 
-## Data sources and API keys
+**Find and add titles**
+- Search with covers, synopsis and genres, in English or Portuguese: movies and series (TMDB), games (IGDB) and, optionally, books (Open Library), anime (AniList) and albums (MusicBrainz), which need no API key
+- Import your old ratings from a spreadsheet (CSV) and export them
 
-Each community that installs the app uses its **own free keys**, which the app admins paste in the app's Settings screen (they are stored in the community's own database and never shown again):
+**Decide what's next**
+- **To watch / play**: the group's list of everything someone wants to watch, play, read or listen to, with who wants each one. What you already finished leaves only your own list
+- **Night**: plan a movie or game night. Pick 2 to 8 titles, set a voting deadline, everyone votes (votes are public) and says if they are coming. The winner becomes a planned night, and Root notifications remind the ones who are going
 
-| Service | Used for | Key |
-|---|---|---|
-| TMDB | movies and series, covers, episodes | yes |
-| OMDb | IMDb ratings | yes |
-| IGDB (Twitch) | games | yes (Client ID and Client Secret) |
-| Open Library, AniList, MusicBrainz + Cover Art Archive | books, anime, albums (optional categories) | no |
+**Know your group**
+- Who thinks like you, the titles that split the group, your year in ratings, and a Hall of Fame and Shame
 
-The app admins are chosen when the app is installed (the "App admins" setting), and the community owner is always an admin. When a service rejects a saved key, the app warns the admins in the app log inside Root. Without keys the app still works with titles added by hand. Guides: [how to get the keys](docs/api-keys.en.md) and [how to set them up](docs/how-to-set-up.en.md) (also in Portuguese: [chaves](docs/chaves-de-api.pt.md), [configurar](docs/como-configurar.pt.md)).
+**Built for communities**
+- English and Portuguese, light and dark themes (it follows the Root theme), narrow screens, and live updates for every member
+- Admins choose who configures the app, can remove comments and titles, and turn the optional categories on or off
+- No ads, no analytics and no tracking. The developer never sees a community's data
 
-The privacy policy of the published app is in [docs/privacy-policy.md](docs/privacy-policy.md): the developer receives and collects nothing; scores and comments live in the community's database hosted by Root.
+Every detail is in [docs/features.md](docs/features.md).
 
-## Project layout
+## 🖼️ Screenshots
 
-| Folder | What it has |
-|---|---|
-| `networking/src/titles.proto` | The contract between the client and the server (protobuf over the Root SDK RPC). After changing it, run `npm run build`. Root limits every message to 256 KiB, so any call that returns a collection has to be paged (the title list is) |
-| `server/src` | Rules, validation and the SQLite storage (`titleService.ts`, `*Repository.ts`) |
-| `server/src/providers` | TMDB, OMDb, IGDB/Twitch, Open Library, AniList and MusicBrainz clients (timeouts, pacing, clear errors) |
-| `server/src/access.ts` | Who is an admin of the app |
-| `server/src/nightService.ts`, `nightRepository.ts` | Movie/game nights: create, vote, attendance, close, tie-break, deadlines, reminders and past nights (paged) |
-| `client/src/nights.ts` | The Night rules on the client (groups, votes, ties, planned night, dates and form) |
-| `client/src` | The React UI. It uses the Root color variables, so it follows the light and dark themes |
-| `client/src/i18n.tsx` | Every text of the UI in Portuguese and English. To change a sentence or add a language, start here |
-| `client/src/importer.ts` | The CSV import logic (parsing, matching, pacing under the Root request limit) |
-| `scripts/package.cjs` | Builds the upload package without leaking secrets (see below) |
+### Rate together
 
-The internal packages are still called `notas-app` (the original project name). This does not show to anyone and does not affect the app.
+<table>
+<tr>
+<td width="50%" valign="top">
 
-## Run it locally
+<img src="docs/screenshots/01-notes-list.png" alt="The ratings list" width="100%"><br>
+<b>Everyone's scores at a glance</b><br>
+<sub>Average, IMDb rating and the first members' scores on every row, with Peak and Rock Bottom as special ratings.</sub>
 
-You need Node.js 22 or newer and a Root developer account.
+</td>
+<td width="50%" valign="top">
 
-1. In the Root dev portal ([dev.rootapp.com](https://dev.rootapp.com)), create an app, open it in **My apps**, go to **Settings** and click **Generate new dev token**.
-2. Copy `server/.env.example` to `server/.env` and paste the token after the `=` (one line, no repeated prefix). This file is ignored by git.
-3. Put your app's ID in the `id` field of `root-manifest.json`.
-4. In the project folder:
+<img src="docs/screenshots/02-reactions.png" alt="Ratings with comments and reactions" width="100%"><br>
+<b>Comments, reactions and a score per member</b><br>
+<sub>Emoji reactions on other people's ratings, and an optional comment with every score.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/03-spoilers.png" alt="A spoiler comment hidden until clicked" width="100%"><br>
+<b>Spoilers stay hidden</b><br>
+<sub>Mark a comment as spoiler and it only opens when someone clicks it.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/04-details.png" alt="Synopsis, genres and platforms" width="100%"><br>
+<b>Synopsis, genres and platforms</b><br>
+<sub>In English or Portuguese, straight from the data sources.</sub>
+
+</td>
+</tr>
+</table>
+
+### Find and add titles
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/05-search.png" alt="Searching for a movie with covers" width="100%"><br>
+<b>Search with covers</b><br>
+<sub>Movies, series, games, books, anime and albums, in English or Portuguese. Can't find it? Add it by hand.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/06-books.png" alt="The books category" width="100%"><br>
+<b>Books, anime and albums</b><br>
+<sub>Optional categories that need no API key: the admin ticks them in Settings.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/07-import-csv.png" alt="Importing ratings from a spreadsheet" width="100%"><br>
+<b>Import your old ratings</b><br>
+<sub>Bring a CSV, check the matches, import. You can export yours too.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/15-episodes.png" alt="Rating a series episode by episode" width="100%"><br>
+<b>Series, episode by episode</b><br>
+<sub>An overall score and, if you want, one for each episode.</sub>
+
+</td>
+</tr>
+</table>
+
+### Decide what's next
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/08-to-watch-list.png" alt="The group's To watch / play list" width="100%"><br>
+<b>To watch / play</b><br>
+<sub>What everyone wants to watch, play, read or listen to, with who wants each one. Done it already? It leaves only your own list.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/09-night-voting.png" alt="A night with public votes" width="100%"><br>
+<b>Night: vote and say if you're coming</b><br>
+<sub>Pick 2 to 8 titles, set a deadline, everyone votes (votes are public) and answers Going / Maybe / Not going.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/10-new-night.png" alt="Creating a new night" width="100%"><br>
+<b>Anyone can plan a night</b><br>
+<sub>Name, date, voting deadline and titles from the community list.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/11-night-planned.png" alt="A planned night" width="100%"><br>
+<b>The winner becomes a planned night</b><br>
+<sub>Ties are broken by whoever created it. After the night, mark it as watched and rate it.</sub>
+
+</td>
+</tr>
+</table>
+
+### Know your group
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/12-stats.png" alt="Statistics: who thinks like you" width="100%"><br>
+<b>Who thinks like you</b><br>
+<sub>Compatibility between members, the titles that split the group and how scores are spread.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/13-my-year.png" alt="A yearly recap" width="100%"><br>
+<b>Your year in ratings</b><br>
+<sub>Scores given, average, favorites and the busiest month.</sub>
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/14-hall-of-fame.png" alt="Hall of Fame and Shame" width="100%"><br>
+<b>Hall of Fame and Shame</b><br>
+<sub>The titles with the most Peak and the most Rock Bottom ratings.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+
+
+</td>
+</tr>
+</table>
+
+### Looks good everywhere
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/16-light-theme.png" alt="The light theme" width="100%"><br>
+<b>Light and dark</b><br>
+<sub>It follows the theme of your Root app.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/17-mobile.png" alt="On a phone" width="100%"><br>
+<b>Made for narrow screens</b><br>
+<sub>The same app on a phone: ratings, the group's list and a night.</sub>
+
+</td>
+</tr>
+</table>
+
+<sub>The screenshots use sample titles and made-up member names. Covers come from TMDB.</sub>
+
+## 🆕 What's new
+
+**2.2.0**: the **To watch / play** list and **Night**, to decide together what to watch or play. **2.0.1**: the title list is paged, so it keeps working with hundreds of titles. **2.0.0**: books, anime and albums, and import from a spreadsheet.
+
+See the [CHANGELOG](CHANGELOG.md) and the [releases](https://github.com/MatheusBonat/couch-critics-source/releases). Click **Watch → Custom → Releases** on this page to be told about each new version.
+
+## 🚀 Set it up
+
+1. Install Couch Critics in your Root community and choose, during the installation, who the app admins are. The community owner is always an admin.
+2. Admins open **Settings** and paste the free keys they need (TMDB for movies and series, OMDb for IMDb ratings, IGDB/Twitch for games). Books, anime and albums need no key. Without any key the app still works with titles added by hand.
+3. Everyone adds titles, rates, and plans nights.
+
+Step-by-step guides: [how to get the API keys](docs/api-keys.en.md) and [how to set them up](docs/how-to-set-up.en.md). Each community uses its **own** free keys, and the app tells the admins when a service rejects one.
+
+## 🧑‍💻 For developers
+
+Couch Critics is built with the **Root SDK**: a TypeScript and React client, a Node.js server and SQLite storage.
 
 ```bash
 npm install
 npm run build
+# dev host: put your dev token in server/.env (see server/.env.example), then
+npm run server   # inside server/
+npm run client   # inside client/
 ```
 
-5. In one terminal run `npm run server` inside `server/`. In another, `npm run client` inside `client/`. The UI opens at http://localhost:5173.
+The [development guide](docs/development.md) covers the project layout, the data sources, running it in the Root dev host, packaging and uploading your own version, and what to change if you fork it.
 
-Tips for the dev host:
+## 🤝 Feedback
 
-- The bar at the top of the page switches the virtual user. Open the page in two windows to simulate two members.
-- Virtual users have no profile, so their name shows as "Member". In a real community the nickname and picture show.
-- The data lives in `server/rootsdk.sqlite3`. Delete it (with the server stopped) to reset.
-- If you change server code, run `npm run build` and restart `npm run server`.
+Found a bug or have an idea? [Open an issue](https://github.com/MatheusBonat/couch-critics-source/issues/new/choose). You can also message **MalphasW** on Root.
 
-## Publish your own version
+## 📄 License and credits
 
-1. Use your own app ID in `root-manifest.json` and raise the `version`: Root refuses an upload whose version already exists.
-2. Package and upload (the token is the one in **Settings → Tokens** of the portal, different from the dev token):
+[MIT](LICENSE). Third-party notices, and what the license does not cover (the app's name and logo and the TMDB logo), are in [NOTICE.md](NOTICE.md). The privacy policy of the published app is in [docs/privacy-policy.md](docs/privacy-policy.md).
 
-```bash
-npm install && npm run build
-npm run package
-npx rootsdk upload package --file ./rootapp.pkg --authToken <AUTH_TOKEN> --host dev.rootapp.com
-```
-
-Always use `npm run package` instead of calling `rootsdk build package` directly. The packager copies the whole `node_modules` folder, and `node_modules/@notas-app/server` is a link to `server/`, so the package would carry `server/.env` (your dev token) and the test database `server/rootsdk.sqlite3` (which holds API keys pasted in Settings). The script moves those files away, builds the package, checks its contents (and deletes it if it finds a secret) and puts the files back. Stop the dev server first.
-
-## If you fork it
-
-- Use your own app ID, name and logo. The name "Couch Critics" and its logo are not covered by the MIT license
-- Change the `User-Agent` in [`server/src/providers/catalog.ts`](server/src/providers/catalog.ts) to identify your own project: MusicBrainz and AniList ask for an identifiable one and may block abusive clients
-- Keep the TMDB attribution (the logo and the notice in the "About and credits" screen) if you use the TMDB API, and follow the terms of every service you use. Most of them are for non-commercial use
-- Change the contact and links in the privacy policy and guides
-
-## License
-
-[MIT](LICENSE). Third-party notices and what the license does not cover are in [NOTICE.md](NOTICE.md).
+Data and covers: [TMDB](https://www.themoviedb.org), [OMDb](https://www.omdbapi.com), [IGDB](https://www.igdb.com) (through Twitch), [Open Library](https://openlibrary.org), [AniList](https://anilist.co), [MusicBrainz](https://musicbrainz.org) and the [Cover Art Archive](https://coverartarchive.org). *This product uses the TMDB API but is not endorsed or certified by TMDB.*

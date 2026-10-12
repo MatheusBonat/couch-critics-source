@@ -1,0 +1,31 @@
+# Couch Critics: todas as funções
+
+[← Voltar ao README](../README.pt.md) · Prints: [docs/screenshots](screenshots)
+
+- Qualquer membro adiciona um título e dá a sua nota (0 a 10, de 0,5 em 0,5), com comentário opcional.
+- Cada membro tem uma nota por título e pode mudá-la ou removê-la.
+- Notas especiais: **Peak** (acima de 10, conta como 10 na média) e **Rock Bottom** / **Fundo do poço** (abaixo de 0, conta como 0). Na barra de nota, são as duas pontas depois do 0 e do 10.
+- Cada título mostra, na própria linha, a nota de até 4 membros (3 no celular), sem precisar abrir.
+- Filmes e séries são buscados pelo nome, em português ou inglês, com capa. A nota do IMDb aparece pequena abaixo da média da comunidade, só por curiosidade. Se o título já foi adicionado, a busca avisa e leva até ele.
+- Jogos também são buscados pelo nome (IGDB), com capa. Na tela em português aparece o nome em português quando o IGDB tem um (ex.: Deus da Guerra), e o original vem ao lado. O IGDB só tem nome em português para parte dos jogos; os outros aparecem com o nome original.
+- Quando a busca não acha, dá para adicionar à mão (sem capa; filmes e séries também ficam sem a nota do IMDb).
+- Cada título guarda o nome nos dois idiomas e mostra o do idioma da pessoa.
+- Séries do TMDB têm nota geral e, se quiserem, nota por episódio: o botão "Avaliar por episódio" lista as temporadas e os episódios (nome e data no idioma da pessoa). Cada episódio mostra a nota do IMDb ou, quando o IMDb ainda não tem, a do TMDB (sublinhada, com a explicação). A média da série usa só a nota geral; a média dos episódios aparece à parte ("Episódios: 8,6").
+- O comentário das notas (de títulos e de episódios) tem um botão de **Emojis** que coloca o emoji onde está o cursor.
+- A média e as notas de cada pessoa atualizam na hora para todos.
+- Quem adicionou um título (ou um admin do app) pode removê-lo. Títulos adicionados à mão também podem ter o nome e o ano editados.
+- Ordenar por ano (mais novo ou mais antigo) e filtrar por **Ainda não avaliei**, para ver só o que falta você dar nota.
+- Comentários podem ser marcados como **spoiler** (ficam escondidos até alguém clicar). Admins podem apagar o texto de um comentário; a nota da pessoa continua.
+- Cada nota guarda a data (aparece ao passar o mouse na nota). Notas anteriores à 1.2 ficam sem data.
+- O título aberto mostra sinopse e gêneros no idioma da pessoa, e as plataformas nos jogos. Títulos antigos recebem esses dados sozinhos, aos poucos, quando as chaves do TMDB e do IGDB estão configuradas. O IGDB só tem sinopse em inglês.
+- **Livros** (Open Library), **animes** (AniList) e **álbuns** (MusicBrainz): categorias opcionais, sem chave de API. O admin liga as que quiser em Configurações, e cada uma ganha uma aba, busca com capa, autor ou artista, sinopse e gêneros.
+- **Importar notas (CSV)** (rodapé): cada membro traz as próprias notas de uma planilha (vírgula, ponto e vírgula ou tab; o arquivo exportado pelo app também serve). O app casa cada linha com um título da busca, mostra o que achou para conferir e importa uma linha por vez. Linhas com nota ou categoria inválidas são ignoradas com o motivo.
+- A lista chega do servidor em páginas (o Root limita cada mensagem a 256 KiB, e uma comunidade com algumas centenas de títulos passaria disso) e a tela mostra 30 títulos por vez, com "Mostrar mais".
+- **Reações** nas notas dos outros (👍 😂 🔥 😮 ❤️), nos títulos e nos episódios. Clicar de novo no mesmo emoji tira a reação.
+- **Quero ver / vendo / já vi** (nos jogos: quero jogar / jogando / já joguei): cada pessoa marca o seu estado, vê quem marcou o quê, e o filtro da lista mostra só o que está em cada estado.
+- **Para ver / jogar** (visão ao lado de "Notas"): a lista da turma com tudo que alguém marcou "quero ver / jogar / ler / ouvir", de todas as categorias, com quem quer cada título. Quem tem mais gente querendo vem primeiro; dá para filtrar por categoria e por "só os que eu quero". Quando você marca "já vi" ou "joguei", o título sai só da sua lista (os outros continuam vendo; há um aviso com "Desfazer"). Dá para adicionar títulos direto dali (o título novo já entra como "quero" para quem adicionou).
+- **Noite** (visão ao lado de "Para ver / jogar"): qualquer membro cria uma noite com nome (opcional), data e hora, prazo de votação e de 2 a 8 títulos da comunidade. Cada membro tem um voto (trocável até fechar; **o voto é aberto**, todos veem quem votou em quê) e responde Vou / Talvez / Não vou. A votação fecha no prazo ou por quem criou (ou um admin); a opção mais votada vence e, em caso de empate (ou se ninguém votou), quem criou escolhe entre as empatadas. O título escolhido aparece como "Noite marcada" nas listas. Seis horas depois do início a noite passa sozinha para "aconteceu" (ou "cancelada", se o empate nunca foi resolvido), e depois dela há um atalho para marcar "já vi / joguei" e dar a nota. Limites: 5 noites abertas na comunidade e 3 por pessoa. O servidor confere prazos a cada 30 segundos e também ao listar. O app usa as notificações do Root (sem permissão no manifesto): o indicador de atividade da comunidade quando uma noite abre ou fecha e um aviso para quem disse Vou ou Talvez quando a noite é decidida e cerca de 1 hora antes do início (pode depender do Root entregar a notificação; não testado no Root real).
+- **Estatísticas** (rodapé), em duas abas. *Comunidade:* quem pensa parecido (compatibilidade entre membros com pelo menos 3 títulos em comum), notas por membro, os títulos que mais dividiram a turma e como as notas se distribuem. *Meu ano:* a retrospectiva de cada pessoa por ano (notas dadas, média, Peak e Rock Bottom, as mais altas, a opinião mais diferente da turma e o mês mais movimentado). A retrospectiva usa a data de cada nota; notas anteriores à 1.2 não têm data e não entram.
+- **Hall da fama e da vergonha** (rodapé): os títulos com mais notas Peak e com mais notas Rock Bottom.
+- **Exportar notas (CSV)** (rodapé): todas as notas da comunidade em uma planilha (nota, comentário, spoiler e data). Se o Root não permitir baixar arquivos dentro do app, o botão não terá efeito (ainda não testado no Root real).
+- Português e inglês: o botão PT/EN no topo troca o idioma. Sem escolha salva, o app segue o idioma do sistema (português para quem usa português, inglês para os demais).
