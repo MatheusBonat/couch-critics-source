@@ -54,20 +54,11 @@ Every detail is in [docs/features.md](docs/features.md).
 <tr>
 <td width="50%" valign="top">
 
-<img src="docs/screenshots/01-notes-list.png" alt="The ratings list" width="100%"><br>
-<b>Everyone's scores at a glance</b><br>
-<sub>Average, IMDb rating and the first members' scores on every row, with Peak and Rock Bottom as special ratings.</sub>
-
-</td>
-<td width="50%" valign="top">
-
 <img src="docs/screenshots/02-reactions.png" alt="Ratings with comments and reactions" width="100%"><br>
-<b>Comments, reactions and a score per member</b><br>
+<b>A score per member, with reactions</b><br>
 <sub>Emoji reactions on other people's ratings, and an optional comment with every score.</sub>
 
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 
 <img src="docs/screenshots/03-spoilers.png" alt="A spoiler comment hidden until clicked" width="100%"><br>
@@ -75,11 +66,20 @@ Every detail is in [docs/features.md](docs/features.md).
 <sub>Mark a comment as spoiler and it only opens when someone clicks it.</sub>
 
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 
 <img src="docs/screenshots/04-details.png" alt="Synopsis, genres and platforms" width="100%"><br>
 <b>Synopsis, genres and platforms</b><br>
 <sub>In English or Portuguese, straight from the data sources.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/15-episodes.png" alt="Rating a series episode by episode" width="100%"><br>
+<b>Series, episode by episode</b><br>
+<sub>An overall score and, if you want, one for each episode.</sub>
 
 </td>
 </tr>
@@ -89,34 +89,25 @@ Every detail is in [docs/features.md](docs/features.md).
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/05-search.png" alt="Searching for a movie with covers" width="100%"><br>
 <b>Search with covers</b><br>
 <sub>Movies, series, games, books, anime and albums, in English or Portuguese. Can't find it? Add it by hand.</sub>
 
 </td>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/06-books.png" alt="The books category" width="100%"><br>
 <b>Books, anime and albums</b><br>
 <sub>Optional categories that need no API key: the admin ticks them in Settings.</sub>
 
 </td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/07-import-csv.png" alt="Importing ratings from a spreadsheet" width="100%"><br>
 <b>Import your old ratings</b><br>
 <sub>Bring a CSV, check the matches, import. You can export yours too.</sub>
-
-</td>
-<td width="50%" valign="top">
-
-<img src="docs/screenshots/15-episodes.png" alt="Rating a series episode by episode" width="100%"><br>
-<b>Series, episode by episode</b><br>
-<sub>An overall score and, if you want, one for each episode.</sub>
 
 </td>
 </tr>
@@ -163,32 +154,25 @@ Every detail is in [docs/features.md](docs/features.md).
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/12-stats.png" alt="Statistics: who thinks like you" width="100%"><br>
 <b>Who thinks like you</b><br>
 <sub>Compatibility between members, the titles that split the group and how scores are spread.</sub>
 
 </td>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/13-my-year.png" alt="A yearly recap" width="100%"><br>
 <b>Your year in ratings</b><br>
 <sub>Scores given, average, favorites and the busiest month.</sub>
 
 </td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/14-hall-of-fame.png" alt="Hall of Fame and Shame" width="100%"><br>
 <b>Hall of Fame and Shame</b><br>
 <sub>The titles with the most Peak and the most Rock Bottom ratings.</sub>
-
-</td>
-<td width="50%" valign="top">
-
-
 
 </td>
 </tr>

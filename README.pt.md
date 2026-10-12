@@ -54,20 +54,11 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 <tr>
 <td width="50%" valign="top">
 
-<img src="docs/screenshots/01-notes-list.png" alt="A lista de notas" width="100%"><br>
-<b>As notas de todo mundo de relance</b><br>
-<sub>Média, nota do IMDb e a nota dos primeiros membros em cada linha, com Peak e Fundo do poço como notas especiais.</sub>
-
-</td>
-<td width="50%" valign="top">
-
 <img src="docs/screenshots/02-reactions.png" alt="Notas com comentários e reações" width="100%"><br>
-<b>Comentários, reações e uma nota por membro</b><br>
+<b>Uma nota por membro, com reações</b><br>
 <sub>Reações com emoji nas notas dos outros e comentário opcional em cada nota.</sub>
 
 </td>
-</tr>
-<tr>
 <td width="50%" valign="top">
 
 <img src="docs/screenshots/03-spoilers.png" alt="Um comentário com spoiler escondido" width="100%"><br>
@@ -75,11 +66,20 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 <sub>Marque o comentário como spoiler e ele só abre quando alguém clica.</sub>
 
 </td>
+</tr>
+<tr>
 <td width="50%" valign="top">
 
 <img src="docs/screenshots/04-details.png" alt="Sinopse, gêneros e plataformas" width="100%"><br>
 <b>Sinopse, gêneros e plataformas</b><br>
 <sub>Em português ou inglês, direto das fontes de dados.</sub>
+
+</td>
+<td width="50%" valign="top">
+
+<img src="docs/screenshots/15-episodes.png" alt="Dando nota a uma série episódio por episódio" width="100%"><br>
+<b>Séries, episódio por episódio</b><br>
+<sub>Uma nota geral e, se quiser, uma para cada episódio.</sub>
 
 </td>
 </tr>
@@ -89,34 +89,25 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/05-search.png" alt="Buscando um filme com capas" width="100%"><br>
 <b>Busca com capas</b><br>
 <sub>Filmes, séries, jogos, livros, animes e álbuns, em português ou inglês. Não achou? Adicione à mão.</sub>
 
 </td>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/06-books.png" alt="A categoria de livros" width="100%"><br>
 <b>Livros, animes e álbuns</b><br>
 <sub>Categorias opcionais que não precisam de chave de API: o admin liga em Configurações.</sub>
 
 </td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/07-import-csv.png" alt="Importando notas de uma planilha" width="100%"><br>
 <b>Traga suas notas antigas</b><br>
 <sub>Escolha um CSV, confira os pares e importe. Dá para exportar as suas também.</sub>
-
-</td>
-<td width="50%" valign="top">
-
-<img src="docs/screenshots/15-episodes.png" alt="Dando nota a uma série episódio por episódio" width="100%"><br>
-<b>Séries, episódio por episódio</b><br>
-<sub>Uma nota geral e, se quiser, uma para cada episódio.</sub>
 
 </td>
 </tr>
@@ -163,32 +154,25 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 
 <table>
 <tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/12-stats.png" alt="Estatísticas: quem pensa parecido" width="100%"><br>
 <b>Quem pensa parecido com você</b><br>
 <sub>Compatibilidade entre membros, os títulos que racham o grupo e como as notas se distribuem.</sub>
 
 </td>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/13-my-year.png" alt="A retrospectiva do ano" width="100%"><br>
 <b>Seu ano em notas</b><br>
 <sub>Notas dadas, média, favoritos e o mês mais movimentado.</sub>
 
 </td>
-</tr>
-<tr>
-<td width="50%" valign="top">
+<td width="33%" valign="top">
 
 <img src="docs/screenshots/14-hall-of-fame.png" alt="Hall da fama e da vergonha" width="100%"><br>
 <b>Hall da fama e da vergonha</b><br>
 <sub>Os títulos com mais notas Peak e mais notas Fundo do poço.</sub>
-
-</td>
-<td width="50%" valign="top">
-
-
 
 </td>
 </tr>
