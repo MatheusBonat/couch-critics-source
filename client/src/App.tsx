@@ -1,7 +1,7 @@
 import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 import { rootClient } from "@rootsdk/client-app";
-import { titleServiceClient, TitleServiceClientEvent } from "@notas-app/gen-client";
-import { KeyStatus, Title, TitleCreatedEvent, TitleDeletedEvent, TitleKind, TitleUpdatedEvent } from "@notas-app/gen-shared";
+import { nightServiceClient, NightServiceClientEvent, titleServiceClient, TitleServiceClientEvent } from "@notas-app/gen-client";
+import { KeyStatus, Night, NightDeletedEvent, NightUpdatedEvent, Title, TitleCreatedEvent, TitleDeletedEvent, TitleKind, TitleUpdatedEvent, WatchStatus } from "@notas-app/gen-shared";
 import { AboutPanel } from "./AboutPanel";
 import { AddTitle } from "./AddTitle";
 import { HallPanel } from "./HallPanel";
@@ -9,8 +9,11 @@ import { ImportPanel } from "./ImportPanel";
 import { StatsPanel } from "./StatsPanel";
 import { SettingsPanel, SettingsView } from "./SettingsPanel";
 import { TitleItem } from "./TitleItem";
+import { NightsView } from "./NightsView";
+import { WantList } from "./WantList";
 import { Lang, useI18n } from "./i18n";
 import { displayName, useProfiles } from "./profiles";
+import { mergeNights, openVotingCount, scheduledByTitle, upsertNight } from "./nights";
 import {
   buildCsv,
   downloadCsv,
@@ -19,18 +22,19 @@ import {
   kinds,
   matchesFilter,
   optionalKinds,
+  pageSize,
   searchKey,
   SortKey,
   sortTitles,
   titleMatches,
   upsertTitle,
   applyTitleEvents,
+  countWanted,
+  watchStatusOf,
   loadAllTitles,
   TitleEvent,
 } from "./lib";
 
-// Quantos títulos a lista mostra de cada vez. "Mostrar mais" abre os próximos.
-const pageSize = 30;
 const showAllTitles = Number.MAX_SAFE_INTEGER;
 
 const sortKeys: SortKey[] = ["recent", "best", "most", "yearNew", "yearOld"];
@@ -41,6 +45,7 @@ const languages: { lang: Lang; label: string; name: string }[] = [
 ];
 
 type PanelKey = "none" | "settings" | "about" | "hall" | "stats" | "import";
+type ViewKey = "notes" | "toWatch" | "nights";
 
 const App = () => {
   const me = String(rootClient.users.getCurrentUserId());
@@ -58,6 +63,10 @@ const App = () => {
   const [addName, setAddName] = useState("");
   const [openId, setOpenId] = useState<number | null>(null);
   const [panel, setPanel] = useState<PanelKey>("none");
+  const [view, setView] = useState<ViewKey>("notes");
+  const [nights, setNights] = useState<Night[] | null>(null);
+  const [nightsFailed, setNightsFailed] = useState(false);
+  const [nightsMore, setNightsMore] = useState({ hasMore: false, next: 0, loading: false });
   const [settings, setSettings] = useState<SettingsView>({
     isAdmin: false,
     canClaim: false,
@@ -90,6 +99,13 @@ const App = () => {
   // e entram por cima dela quando termina.
   const arrivedDuringLoad = useRef<TitleEvent[] | null>(null);
 
+  // Quantos títulos a turma quer ver, jogar, ler ou ouvir (nas categorias que aparecem).
+  const wantTotal = useMemo(() => {
+    let total = 0;
+    for (const count of countWanted(titles ?? [], visibleKinds.map((item) => item.kind), me).values()) total += count;
+    return total;
+  }, [titles, visibleKinds, me]);
+
   const load = () => {
     setLoadFailure(null);
     arrivedDuringLoad.current = [];
@@ -104,6 +120,57 @@ const App = () => {
   };
 
   useEffect(load, []);
+
+  // As mudanças das noites que chegam em tempo real enquanto a primeira página ainda está vindo entram por cima dela.
+  const nightsArrivedDuringLoad = useRef<({ night: Night } | { deletedId: number })[] | null>(null);
+
+  const loadNights = () => {
+    setNightsFailed(false);
+    nightsArrivedDuringLoad.current = [];
+    nightServiceClient
+      .list({ beforeId: 0 })
+      .then((response) => {
+        let loaded = response.nights;
+        for (const change of nightsArrivedDuringLoad.current ?? []) {
+          loaded = "night" in change ? upsertNight(loaded, change.night) : loaded.filter((item) => item.id !== change.deletedId);
+        }
+        setNights(loaded);
+        setNightsMore({ hasMore: response.hasMore, next: response.nextBeforeId, loading: false });
+      })
+      .catch(() => setNightsFailed(true))
+      .finally(() => {
+        nightsArrivedDuringLoad.current = null;
+      });
+  };
+
+  useEffect(loadNights, []);
+
+  const loadMoreNights = () => {
+    setNightsMore((current) => ({ ...current, loading: true }));
+    nightServiceClient
+      .list({ beforeId: nightsMore.next })
+      .then((response) => {
+        setNights((current) => mergeNights(current ?? [], response.nights));
+        setNightsMore({ hasMore: response.hasMore, next: response.nextBeforeId, loading: false });
+      })
+      .catch((error) => {
+        setNotice(errorMessage(error, t));
+        setNightsMore((current) => ({ ...current, loading: false }));
+      });
+  };
+
+  const handleNightChanged = (night: Night) => {
+    setNotice(null);
+    setNights((current) => (current ? upsertNight(current, night) : [night]));
+  };
+
+  const handleNightDeleted = (id: number) => {
+    setNights((current) => (current ? current.filter((item) => item.id !== id) : current));
+  };
+
+  // Títulos que já têm noite marcada, para o aviso "Noite marcada" nas linhas.
+  const scheduled = useMemo(() => scheduledByTitle(nights ?? []), [nights]);
+  const openVotes = useMemo(() => openVotingCount(nights ?? []), [nights]);
 
   // Mudou a categoria, a busca, a ordem ou o filtro: volta para a primeira página.
   useEffect(() => setLimit(pageSize), [kindIndex, query, sort, filter]);
@@ -145,12 +212,27 @@ const App = () => {
 
     const onSettingsChanged = () => loadSettings();
 
+    const onNightUpdated = (event: NightUpdatedEvent) => {
+      const night = event.night;
+      if (!night) return;
+      if (nightsArrivedDuringLoad.current) nightsArrivedDuringLoad.current.push({ night });
+      setNights((current) => (current ? upsertNight(current, night) : current));
+    };
+    const onNightDeleted = (event: NightDeletedEvent) => {
+      if (nightsArrivedDuringLoad.current) nightsArrivedDuringLoad.current.push({ deletedId: event.id });
+      setNights((current) => (current ? current.filter((item) => item.id !== event.id) : current));
+    };
+
+    nightServiceClient.on(NightServiceClientEvent.Updated, onNightUpdated);
+    nightServiceClient.on(NightServiceClientEvent.Deleted, onNightDeleted);
     titleServiceClient.on(TitleServiceClientEvent.Created, onCreated);
     titleServiceClient.on(TitleServiceClientEvent.SettingsChanged, onSettingsChanged);
     titleServiceClient.on(TitleServiceClientEvent.Updated, onUpdated);
     titleServiceClient.on(TitleServiceClientEvent.Deleted, onDeleted);
 
     return () => {
+      nightServiceClient.off(NightServiceClientEvent.Updated, onNightUpdated);
+      nightServiceClient.off(NightServiceClientEvent.Deleted, onNightDeleted);
       titleServiceClient.off(TitleServiceClientEvent.Created, onCreated);
       titleServiceClient.off(TitleServiceClientEvent.SettingsChanged, onSettingsChanged);
       titleServiceClient.off(TitleServiceClientEvent.Updated, onUpdated);
@@ -158,9 +240,13 @@ const App = () => {
     };
   }, []);
 
+  // Nomes e fotos de todo mundo que aparece na tela: quem adicionou ou avaliou títulos e quem criou, votou ou respondeu nas noites.
   const userIds = useMemo(
-    () => (titles ?? []).flatMap((title) => [title.createdBy, ...title.ratings.map((rating) => rating.userId)]),
-    [titles],
+    () => [
+      ...(titles ?? []).flatMap((title) => [title.createdBy, ...title.ratings.map((rating) => rating.userId)]),
+      ...(nights ?? []).flatMap((night) => [night.createdBy, ...night.options.flatMap((option) => option.voterIds), ...night.rsvps.map((rsvp) => rsvp.userId)]),
+    ],
+    [titles, nights],
   );
   const profiles = useProfiles(userIds);
 
@@ -205,6 +291,7 @@ const App = () => {
     const index = visibleKinds.findIndex((item) => item.kind === title.kind);
     if (index < 0) return;
 
+    setView("notes");
     setKindIndex(index);
     setPanel("none");
     setAdding(false);
@@ -219,6 +306,57 @@ const App = () => {
   const exportCsv = () => {
     const csv = buildCsv(shownTitles, (id) => displayName(profiles, id, t.member));
     downloadCsv("couch-critics-ratings.csv", csv);
+  };
+
+  const selectView = (next: ViewKey) => {
+    setView(next);
+    setAdding(false);
+    setOpenId(null);
+    setPanel("none");
+  };
+
+  // Marca "quero" para mim num título (usado ao adicionar pela lista da turma).
+  const markWanted = async (id: number): Promise<Title | null> => {
+    try {
+      const response = await titleServiceClient.setWatchStatus({ titleId: id, status: WatchStatus.WANT });
+      return response.title ?? null;
+    } catch (error) {
+      setNotice(errorMessage(error, t));
+      return null;
+    }
+  };
+
+  // Adicionar pela lista da turma: o título novo já entra marcado como "quero" para quem adicionou.
+  const handleCreatedToWatch = async (title: Title) => {
+    const updated = await markWanted(title.id);
+    handleChanged(updated ?? title);
+    setAdding(false);
+    setOpenId(title.id);
+  };
+
+  // O título já existe: se eu ainda não marquei nada, marco "quero"; se já marquei (vendo, já vi), abro na tela de notas.
+  const openExistingFromList = async (id: number) => {
+    const existing = (titles ?? []).find((item) => item.id === id);
+    if (!existing) return;
+
+    if (watchStatusOf(existing, me) === WatchStatus.UNSPECIFIED) {
+      const updated = await markWanted(id);
+      if (updated) handleChanged(updated);
+      setAdding(false);
+      setOpenId(id);
+      return;
+    }
+
+    setView("notes");
+    openTitle(existing);
+  };
+
+  const startAddingFromList = (target: { kind: TitleKind }) => {
+    const index = visibleKinds.findIndex((item) => item.kind === target.kind);
+    setKindIndex(index < 0 ? 0 : index);
+    setPanel("none");
+    setAddName("");
+    setAdding(true);
   };
 
   const openSettings = () => {
@@ -268,7 +406,26 @@ const App = () => {
 
   return (
     <main className="app">
+      <div className="view-bar" role="group" aria-label={t.views.label}>
+        <button type="button" className="view-button" aria-pressed={view === "notes"} onClick={() => selectView("notes")}>
+          {t.views.notes}
+        </button>
+        <button type="button" className="view-button" aria-pressed={view === "toWatch"} onClick={() => selectView("toWatch")}>
+          {t.views.toWatch}
+          <span className="tab-count">{titles ? wantTotal : ""}</span>
+        </button>
+        <button type="button" className="view-button" aria-pressed={view === "nights"} onClick={() => selectView("nights")}>
+          {t.views.nights}
+          {openVotes > 0 && (
+            <span className="tab-count night-badge" title={t.nights.badge(openVotes)}>
+              {openVotes}
+            </span>
+          )}
+        </button>
+      </div>
+
       <header className="bar">
+        {view === "notes" ? (
         <div className="tab-bar" role="tablist" aria-label={t.category}>
           {visibleKinds.map((item, index) => (
             <button
@@ -288,9 +445,12 @@ const App = () => {
             </button>
           ))}
         </div>
+        ) : (
+          <span />
+        )}
 
         <div className="bar-actions">
-          {!adding && (
+          {!adding && view === "notes" && (
             <button type="button" className="button-primary" onClick={() => startAdding("")}>
               {kindText.add}
             </button>
@@ -352,18 +512,75 @@ const App = () => {
 
       {adding && (
         <AddTitle
-          key={addName}
+          key={`${addName}-${kind.kind}`}
           kind={kind}
           initialName={addName}
           source={sourceStatus}
           canConfigure={canConfigure}
-          onCreated={handleCreated}
+          onCreated={view === "toWatch" ? (title) => void handleCreatedToWatch(title) : handleCreated}
           onCancel={() => setAdding(false)}
-          onOpenExisting={openExisting}
+          onOpenExisting={view === "toWatch" ? (id) => void openExistingFromList(id) : openExisting}
           onOpenSettings={openSettings}
         />
       )}
 
+      {view === "nights" ? (
+        <section id="nights-panel" aria-label={t.nights.title}>
+          <NightsView
+            nights={nights}
+            hasMoreNights={nightsMore.hasMore}
+            loadingMore={nightsMore.loading}
+            loadFailed={nightsFailed}
+            titles={titles ?? []}
+            visibleKinds={visibleKinds}
+            me={me}
+            isAdmin={settings.isAdmin}
+            profiles={profiles}
+            onNightChanged={handleNightChanged}
+            onNightDeleted={handleNightDeleted}
+            onTitleChanged={handleChanged}
+            onOpenTitle={openTitle}
+            onLoadMore={loadMoreNights}
+            onRetry={loadNights}
+            onError={setNotice}
+          />
+        </section>
+      ) : view === "toWatch" ? (
+        <section id="to-watch-panel" aria-label={t.toWatch.title} aria-busy={titles === null && !loadFailure}>
+          {loadFailure ? (
+            <div className="empty">
+              <p>{errorMessage(loadFailure.error, t)}</p>
+              <button type="button" className="button-outline" onClick={load}>
+                {t.tryAgain}
+              </button>
+            </div>
+          ) : titles === null ? (
+            <ul className="list" aria-hidden="true">
+              {[0, 1, 2, 3].map((item) => (
+                <li key={item} className="title title-skeleton">
+                  <span className="skeleton skeleton-score" />
+                  <span className="skeleton skeleton-name" />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <WantList
+              titles={titles}
+              visibleKinds={visibleKinds}
+              me={me}
+              isAdmin={settings.isAdmin}
+              profiles={profiles}
+              openId={openId}
+              onToggle={(id) => setOpenId(openId === id ? null : id)}
+              onChanged={handleChanged}
+              onDeleted={handleDeleted}
+              onError={setNotice}
+              scheduled={scheduled}
+              onAdd={startAddingFromList}
+            />
+          )}
+        </section>
+      ) : (
       <section
         id="titles-panel"
         role="tabpanel"
@@ -459,6 +676,7 @@ const App = () => {
                   isAdmin={settings.isAdmin}
                   open={openId === title.id}
                   profiles={profiles}
+                  scheduled={scheduled.get(title.id)}
                   onToggle={() => setOpenId(openId === title.id ? null : title.id)}
                   onChanged={handleChanged}
                   onDeleted={handleDeleted}
@@ -477,6 +695,7 @@ const App = () => {
           </>
         )}
       </section>
+      )}
 
       <footer className="app-footer">
         <button type="button" className="button-quiet" onClick={() => toggle("stats")}>

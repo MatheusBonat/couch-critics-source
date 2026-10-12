@@ -2,17 +2,18 @@
 
 Last updated: October 12, 2026
 
-Couch Critics is a free, independent Root App that lets the members of a community rate movies, series and games. Português logo abaixo.
+Couch Critics is a free, independent Root App that lets the members of a community rate movies, series, games, books, anime and albums, and plan movie or game nights together. Português logo abaixo.
 
 ## What the app stores
 
 Couch Critics stores, in the database of the community where it is installed (hosted by the Root platform):
 
-- the scores and comments that members write;
-- who added each title;
+- the scores and comments that members write, and the emoji reactions they give to other people's ratings;
+- who added each title, and the "want to watch / watching / watched" status each member sets;
+- the nights that members plan: name, date and time, the title options, each member's vote and each member's attendance answer (going, maybe or not going);
 - the data-source keys that the community's admins paste in the app's Settings (TMDB, OMDb and IGDB/Twitch). Once saved, the keys are never shown again.
 
-Scores and comments are visible to every member of that community.
+Scores, comments, reactions, watch status, votes and attendance answers are visible to every member of that community. Votes in a night are public: everyone can see who voted for what.
 
 ## Who can see it
 
@@ -25,6 +26,10 @@ To search for titles, the app's server sends the search text and title IDs to TM
 When a member imports a spreadsheet of ratings, the file is read on that member's own device; only the ratings the member confirms are sent to the app.
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.
+
+## Notifications
+
+When a night is decided, ends in a tie, or is about to start (about one hour before), the app uses Root's notification feature to notify the members who answered "going" or "maybe" (and the person who created the night, when a tie needs their decision). When a night opens or closes, the app also uses Root's community activity indicator. The app does not read or post messages in channels, and it does not need any Root permission for this.
 
 ## What the app does not do
 
@@ -48,17 +53,18 @@ Root user: MalphasW (send a message on Root).
 
 Última atualização: 12 de outubro de 2026
 
-O Couch Critics é um app gratuito e independente do Root em que os membros de uma comunidade dão nota a filmes, séries e jogos.
+O Couch Critics é um app gratuito e independente do Root em que os membros de uma comunidade dão nota a filmes, séries, jogos, livros, animes e álbuns e combinam juntos noites de filme ou jogo.
 
 ## O que o app guarda
 
 O Couch Critics guarda, no banco de dados da comunidade onde está instalado (hospedado pela plataforma Root):
 
-- as notas e os comentários que os membros escrevem;
-- quem adicionou cada título;
+- as notas e os comentários que os membros escrevem, e as reações com emoji que dão às notas dos outros;
+- quem adicionou cada título e o estado "quero ver / vendo / já vi" que cada membro marca;
+- as noites que os membros combinam: nome, data e hora, as opções de título, o voto de cada membro e a resposta de presença de cada membro (vou, talvez ou não vou);
 - as chaves das fontes de dados que os admins da comunidade colam nas Configurações do app (TMDB, OMDb e IGDB/Twitch). Depois de salvas, as chaves nunca voltam a aparecer na tela.
 
-As notas e os comentários são visíveis para todos os membros dessa comunidade.
+As notas, os comentários, as reações, o estado dos títulos, os votos e as respostas de presença são visíveis para todos os membros dessa comunidade. Os votos de uma noite são abertos: todo mundo vê quem votou em quê.
 
 ## Quem pode ver
 
@@ -71,6 +77,10 @@ Para buscar títulos, o servidor do app envia o texto da busca e os IDs dos tít
 Quando um membro importa uma planilha de notas, o arquivo é lido no próprio aparelho dele; só as notas que ele confirmar são enviadas ao app.
 
 Este produto usa a API do TMDB, mas não é apoiado nem certificado pelo TMDB.
+
+## Notificações
+
+Quando uma noite é decidida, termina em empate ou está perto de começar (cerca de uma hora antes), o app usa as notificações do Root para avisar os membros que responderam "vou" ou "talvez" (e quem criou a noite, quando um empate precisa da decisão dessa pessoa). Quando uma noite abre ou fecha, o app também usa o indicador de atividade da comunidade do Root. O app não lê nem publica mensagens em canais e não precisa de nenhuma permissão do Root para isso.
 
 ## O que o app não faz
 

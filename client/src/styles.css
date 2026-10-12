@@ -1792,3 +1792,457 @@ textarea.input {
     grid-column: 1 / -1;
   }
 }
+
+/* Versão 2.1: visões (Notas / Para ver e jogar) e a lista da turma */
+.view-bar {
+  display: inline-flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border-radius: 9999px;
+  background: var(--nt-bg-2);
+}
+
+.view-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--nt-text-2);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+
+.view-button:hover {
+  color: var(--nt-text);
+}
+
+.view-button[aria-pressed="true"] {
+  background: var(--nt-bg-3);
+  color: var(--nt-text);
+  box-shadow: 0 0 0 1px var(--nt-border);
+}
+
+.want {
+  display: grid;
+  gap: 12px;
+}
+
+.want-intro {
+  margin: 0;
+}
+
+.want-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.want-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.want-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--nt-border);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--nt-text-2);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background-color 150ms, color 150ms;
+}
+
+.want-chip:hover {
+  color: var(--nt-text);
+}
+
+.want-chip[aria-pressed="true"] {
+  background: var(--nt-bg-3);
+  color: var(--nt-text);
+  box-shadow: 0 0 0 1px var(--nt-border);
+}
+
+.want-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+}
+
+.want-mine {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--nt-text-2);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.want-line {
+  color: var(--nt-text-2);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+@media (max-width: 600px) {
+  .view-bar {
+    display: flex;
+    width: 100%;
+  }
+
+  .view-button {
+    flex: 1 1 auto;
+    justify-content: center;
+    padding: 0 8px;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+
+  .want-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.want-gone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px solid var(--nt-border);
+  border-radius: 12px;
+  background: var(--nt-bg-2);
+  color: var(--nt-text-2);
+  font-size: 14px;
+}
+
+/* Versão 2.2: Noite de filme/jogo */
+.nights {
+  display: grid;
+  gap: 16px;
+}
+
+.night-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--nt-accent);
+  color: var(--nt-bg);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.night-group {
+  display: grid;
+  gap: 8px;
+}
+
+.night-group-title {
+  margin: 0;
+  color: var(--nt-text-2);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.night-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.night {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--nt-border);
+  border-radius: 12px;
+  background: var(--nt-bg-2);
+}
+
+.night-decided {
+  border-color: var(--nt-accent);
+}
+
+.night-past {
+  opacity: 0.85;
+}
+
+.night-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.night-name {
+  margin: 0;
+  font-size: 17px;
+  line-height: 24px;
+  font-weight: 600;
+}
+
+.night-status {
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background: var(--nt-bg-3);
+  box-shadow: 0 0 0 1px var(--nt-border);
+  color: var(--nt-text-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.night-status-voting,
+.night-status-decided {
+  color: var(--nt-text);
+  box-shadow: 0 0 0 1px var(--nt-accent);
+}
+
+.night-when {
+  margin: 0;
+  font-weight: 500;
+}
+
+.night-sub {
+  margin: 0;
+  font-size: 13px;
+}
+
+.night-tie {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--nt-bg-3);
+  box-shadow: 0 0 0 1px var(--nt-border);
+  font-size: 14px;
+}
+
+.night-options {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.night-option {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--nt-bg-3);
+  box-shadow: 0 0 0 1px var(--nt-border);
+}
+
+.night-option.is-mine {
+  box-shadow: 0 0 0 1px var(--nt-accent);
+}
+
+.night-option.is-winner {
+  box-shadow: 0 0 0 2px var(--nt-accent);
+}
+
+.night-option.is-tied {
+  box-shadow: 0 0 0 1px var(--nt-text-2);
+}
+
+.night-option-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.night-option-name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.night-option-meta {
+  font-size: 13px;
+}
+
+.night-bar {
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--nt-bg-2);
+  overflow: hidden;
+}
+
+.night-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--nt-text-3);
+  transition: width 200ms ease-out;
+}
+
+.night-bar-fill.is-leading {
+  background: var(--nt-accent);
+}
+
+.night-option-votes {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.night-tag {
+  color: var(--nt-text);
+}
+
+.night-voters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 13px;
+}
+
+.night-option-side {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.button-outline.is-active {
+  background: var(--nt-bg-2);
+  box-shadow: 0 0 0 1px var(--nt-accent);
+}
+
+.night-rsvp,
+.night-manage {
+  display: grid;
+  gap: 8px;
+}
+
+.night-manage {
+  padding-top: 8px;
+  border-top: 1px solid var(--nt-border);
+}
+
+.night-flag {
+  color: var(--nt-accent);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.night-form {
+  display: grid;
+  gap: 16px;
+  margin-bottom: 0;
+}
+
+.night-form .panel-title {
+  margin: 0;
+}
+
+.night-dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field-error {
+  margin: 0;
+  color: var(--nt-error);
+  font-size: 14px;
+}
+
+.night-chosen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.night-chosen-chip {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--nt-accent);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--nt-text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.night-count,
+.night-hint {
+  margin: 0;
+  font-size: 13px;
+}
+
+.night-candidates {
+  display: grid;
+  gap: 4px;
+  max-height: 320px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.night-candidate {
+  display: grid;
+  grid-template-columns: auto 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.night-candidate:hover,
+.night-candidate.is-selected {
+  background: var(--nt-bg-3);
+}
+
+.night-candidate-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+@media (max-width: 600px) {
+  .night-dates {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .night-option {
+    grid-template-columns: 40px minmax(0, 1fr);
+  }
+
+  .night-option-side {
+    grid-column: 1 / -1;
+    grid-auto-flow: column;
+    justify-content: start;
+    justify-items: start;
+  }
+}

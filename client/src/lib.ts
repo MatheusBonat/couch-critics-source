@@ -340,3 +340,43 @@ export function matchesFilter(title: Title, filter: FilterKey, userId: string): 
   if (filter === "unrated") return !hasRated(title, userId);
   return watchStatusOf(title, userId) === filterStatus[filter];
 }
+
+export interface WantItem {
+  title: Title;
+  // Quem marcou "quero ver / jogar / ler / ouvir" neste título, na ordem em que marcou.
+  wanters: string[];
+  mine: boolean;
+}
+
+// A lista da turma: tudo que pelo menos uma pessoa quer ver, jogar, ler ou ouvir, nas categorias que aparecem,
+// menos o que quem está usando já viu ou jogou (já vi / joguei). Quem tem mais gente querendo vem primeiro; empatou, vem o mais novo.
+export function buildWantList(titles: Title[], allowedKinds: TitleKind[], userId: string, options: { kind?: TitleKind | null; onlyMine?: boolean } = {}): WantItem[] {
+  const items: WantItem[] = [];
+
+  for (const title of titles) {
+    if (!allowedKinds.includes(title.kind)) continue;
+    if (options.kind != null && title.kind !== options.kind) continue;
+
+    const wanters = title.statuses.filter((entry) => entry.status === WatchStatus.WANT).map((entry) => entry.userId);
+    if (wanters.length === 0) continue;
+
+    // Quem já viu ou jogou marca "já vi" e o título some só da lista dessa pessoa; os outros continuam vendo.
+    if (watchStatusOf(title, userId) === WatchStatus.DONE) continue;
+
+    const mine = wanters.includes(userId);
+    if (options.onlyMine && !mine) continue;
+    items.push({ title, wanters, mine });
+  }
+
+  return items.sort((a, b) => b.wanters.length - a.wanters.length || b.title.id - a.title.id);
+}
+
+// Quantos títulos da lista da turma há em cada categoria (para os contadores das categorias).
+export function countWanted(titles: Title[], allowedKinds: TitleKind[], userId: string): Map<TitleKind, number> {
+  const counts = new Map<TitleKind, number>();
+  for (const item of buildWantList(titles, allowedKinds, userId)) counts.set(item.title.kind, (counts.get(item.title.kind) ?? 0) + 1);
+  return counts;
+}
+
+// Quantos títulos cada lista mostra de cada vez. "Mostrar mais" abre os próximos.
+export const pageSize = 30;

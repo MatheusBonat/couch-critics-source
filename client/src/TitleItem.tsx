@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { UserProfile } from "@rootsdk/client-app";
-import { Rating, RatingTier, Title, TitleKind, WatchStatus } from "@notas-app/gen-shared";
+import { Night, Rating, RatingTier, Title, TitleKind, WatchStatus } from "@notas-app/gen-shared";
 import { titleServiceClient } from "@notas-app/gen-client";
 import { EditTitleForm } from "./EditTitleForm";
 import { EpisodesPanel } from "./EpisodesPanel";
@@ -11,6 +11,7 @@ import { VoteList } from "./VoteList";
 import { WatchControls } from "./WatchControls";
 import { useI18n } from "./i18n";
 import { Avatar, displayName } from "./profiles";
+import { formatWhen } from "./nights";
 import { average, errorMessage, findRating, formatScore, kinds, posterPathOf, ratingLabel, ratingRank, titleName, watchStatusOf } from "./lib";
 
 interface Props {
@@ -23,9 +24,13 @@ interface Props {
   onChanged: (title: Title) => void;
   onDeleted: (id: number) => void;
   onError: (message: string) => void;
+  // Na lista "Para ver / jogar": quem quer este título, mostrado na linha.
+  wantedBy?: string[];
+  // A noite marcada em que este título foi o escolhido (decidida e ainda por acontecer).
+  scheduled?: Night;
 }
 
-export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError }: Props) {
+export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled }: Props) {
   const { t, lang } = useI18n();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -48,6 +53,13 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
     rating.tier === RatingTier.PEAK ? " tier tier-peak" : rating.tier === RatingTier.ROCK_BOTTOM ? " tier tier-bottom" : "";
 
   const nameOf = (rating: Rating) => (rating.userId === me ? t.youTitle : displayName(profiles, rating.userId, t.member));
+
+  // "3 querem: Ana, Bruno, você e mais 1": os quatro primeiros nomes, quem está usando como "você".
+  const wantLine = (userIds: string[]) => {
+    const names = userIds.map((id) => (id === me ? t.youTitle : displayName(profiles, id, t.member)));
+    const shown = names.slice(0, 4).join(", ");
+    return t.toWatch.wantedBy(names.length, names.length > 4 ? `${shown} ${t.toWatch.moreNames(names.length - 4)}` : shown);
+  };
 
   const maxChips = 4;
   const chips = votes.slice(0, maxChips);
@@ -115,6 +127,8 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
         <span className="title-main">
           <span className="title-name">{name}</span>
           <span className="title-meta">{title.creator ? `${title.creator} · ${t.addedByLine(title.year, creator)}` : t.addedByLine(title.year, creator)}</span>
+          {wantedBy && wantedBy.length > 0 && <span className="want-line">{wantLine(wantedBy)}</span>}
+          {scheduled && <span className="night-flag">{t.nights.scheduled(formatWhen(scheduled.startsAt, t.locale))}</span>}
           {chips.length > 0 && (
             <span className="chips">
               {chips.map((vote, index) => (

@@ -48,6 +48,8 @@ import { CachedSeason, EpisodeData, episodeRepository } from "./episodeRepositor
 import { deleteSetting, getSetting, setSetting, settingKeys } from "./settingsRepository";
 import { adminState, claimAdmin } from "./access";
 import { warnAdmins } from "./communityLog";
+import { enabledKinds, optionalKinds } from "./kinds";
+import { nightService } from "./nightService";
 import { ProviderError, ProviderErrorCode } from "./providers/http";
 import { Lang, TmdbKind, mergeSearchResults, tmdbCheck, tmdbDetails, tmdbSearch, tmdbSeasonEpisodes, tmdbSeasons } from "./providers/tmdb";
 import { omdbCheck, omdbRating, omdbSeasonRatings } from "./providers/omdb";
@@ -95,14 +97,6 @@ function fail(code: TitleError, message: string): never {
 
 function isValidKind(kind: TitleKind): boolean {
   return kind === TitleKind.MOVIE || kind === TitleKind.SERIES || kind === TitleKind.GAME || optionalKinds.includes(kind);
-}
-
-// Categorias que o admin liga ou desliga em Configurações. Filmes, séries e jogos estão sempre ligados.
-const optionalKinds: TitleKind[] = [TitleKind.BOOK, TitleKind.ANIME, TitleKind.ALBUM];
-
-async function enabledKinds(): Promise<TitleKind[]> {
-  const wanted = ((await getSetting(settingKeys.enabledKinds)) ?? "").split(",").map(Number);
-  return optionalKinds.filter((kind) => wanted.includes(kind));
 }
 
 // Uma categoria opcional desligada não aceita busca nem título novo (os que já existem continuam guardados).
@@ -623,6 +617,8 @@ export class TitleService extends TitleServiceBase {
     }
 
     await titleRepository.delete(title.id);
+    // O título sai das noites em que era uma opção (e das que ele já tinha vencido).
+    await nightService.titleRemoved(title.id);
 
     this.broadcastDeleted({ id: title.id }, "all", client);
     return {};

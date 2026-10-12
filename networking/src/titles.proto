@@ -47,6 +47,17 @@ enum TitleError {
   TITLE_ERROR_CATALOG_UNAVAILABLE = 26;
   TITLE_ERROR_CATALOG_RATE_LIMITED = 27;
   TITLE_ERROR_CATALOG_NOT_FOUND = 28;
+  // Noite de filme/jogo (versão 2.2).
+  TITLE_ERROR_NIGHT_NOT_FOUND = 29;
+  TITLE_ERROR_NIGHT_INVALID_NAME = 30;
+  TITLE_ERROR_NIGHT_INVALID_TIME = 31;
+  TITLE_ERROR_NIGHT_INVALID_OPTIONS = 32;
+  TITLE_ERROR_NIGHT_LIMIT = 33;
+  TITLE_ERROR_NIGHT_VOTING_CLOSED = 34;
+  TITLE_ERROR_NIGHT_FORBIDDEN = 35;
+  TITLE_ERROR_NIGHT_WRONG_STATE = 36;
+  TITLE_ERROR_NIGHT_INVALID_OPTION = 37;
+  TITLE_ERROR_NIGHT_INVALID_RSVP = 38;
 }
 
 // Nota normal: score de 0 a 10, de meio em meio ponto.
@@ -417,4 +428,120 @@ service TitleService {
   rpc BroadcastDeleted(TitleDeletedEvent) returns (rootsdk.Void);
   rpc BroadcastSettingsChanged(SettingsChangedEvent) returns (rootsdk.Void);
   rpc BroadcastEpisodeUpdated(EpisodeUpdatedEvent) returns (rootsdk.Void);
+}
+
+// ---------- Noite de filme/jogo (versão 2.2) ----------
+// Uma noite é um evento com data e hora, opções de título para votar e a presença de cada membro. O voto é aberto:
+// todo mundo vê quem votou em quê. Cada mensagem do Root pode ter até 256 KiB, então a lista de noites vem em páginas.
+
+enum NightStatus {
+  NIGHT_STATUS_UNSPECIFIED = 0;
+  // A votação está aberta.
+  NIGHT_STATUS_VOTING = 1;
+  // A votação fechou. Com winner_option_id = 0 houve empate e quem criou (ou um admin) ainda precisa escolher.
+  NIGHT_STATUS_CLOSED = 2;
+  NIGHT_STATUS_HAPPENED = 3;
+  NIGHT_STATUS_CANCELED = 4;
+}
+
+enum RsvpAnswer {
+  RSVP_ANSWER_UNSPECIFIED = 0;
+  RSVP_ANSWER_GOING = 1;
+  RSVP_ANSWER_MAYBE = 2;
+  RSVP_ANSWER_NOT_GOING = 3;
+}
+
+message NightOption {
+  uint32 id = 1;
+  uint32 title_id = 2;
+  // Quem votou nesta opção (voto aberto).
+  repeated string voter_ids = 3;
+}
+
+message NightRsvp {
+  string user_id = 1;
+  RsvpAnswer answer = 2;
+}
+
+message Night {
+  uint32 id = 1;
+  string name = 2;
+  // Datas em milissegundos desde 1970 (UTC). Cada pessoa vê no fuso do próprio aparelho.
+  double starts_at = 3;
+  double voting_ends_at = 4;
+  string created_by = 5;
+  NightStatus status = 6;
+  repeated NightOption options = 7;
+  repeated NightRsvp rsvps = 8;
+  uint32 winner_option_id = 9;
+  double created_at = 10;
+}
+
+message NightListRequest {
+  // Só vêm as noites com ID menor que este. 0 começa pelas noites abertas e as mais novas.
+  uint32 before_id = 1;
+}
+
+message NightListResponse {
+  repeated Night nights = 1;
+  bool has_more = 2;
+  uint32 next_before_id = 3;
+}
+
+message NightCreateRequest {
+  string name = 1;
+  double starts_at = 2;
+  double voting_ends_at = 3;
+  repeated uint32 title_ids = 4;
+}
+
+message NightVoteRequest {
+  uint32 night_id = 1;
+  // 0 tira o voto.
+  uint32 option_id = 2;
+}
+
+message NightRsvpRequest {
+  uint32 night_id = 1;
+  // UNSPECIFIED tira a resposta.
+  RsvpAnswer answer = 2;
+}
+
+message NightIdRequest {
+  uint32 night_id = 1;
+}
+
+message NightPickRequest {
+  uint32 night_id = 1;
+  uint32 option_id = 2;
+}
+
+message NightResponse {
+  Night night = 1;
+}
+
+message NightDeleteResponse {
+}
+
+message NightUpdatedEvent {
+  Night night = 1;
+}
+
+message NightDeletedEvent {
+  uint32 id = 1;
+}
+
+service NightService {
+  rpc List(NightListRequest) returns (NightListResponse);
+  rpc Create(NightCreateRequest) returns (NightResponse);
+  rpc Vote(NightVoteRequest) returns (NightResponse);
+  rpc SetRsvp(NightRsvpRequest) returns (NightResponse);
+  rpc CloseVoting(NightIdRequest) returns (NightResponse);
+  rpc PickWinner(NightPickRequest) returns (NightResponse);
+  rpc MarkHappened(NightIdRequest) returns (NightResponse);
+  rpc Cancel(NightIdRequest) returns (NightResponse);
+  rpc Delete(NightIdRequest) returns (NightDeleteResponse);
+
+  rpc BroadcastUpdated(NightUpdatedEvent) returns (rootsdk.Void);
+  rpc BroadcastDeleted(NightDeletedEvent) returns (rootsdk.Void);
 }
