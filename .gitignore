@@ -1,0 +1,19 @@
+# Secrets and local data: never commit these
+.env
+.env.*
+!.env.example
+*.sqlite3
+*.sqlite3-*
+
+# Dependencies and generated files (they come back with npm install and npm run build)
+node_modules/
+client/dist/
+server/dist/
+server/tsconfig.tsbuildinfo
+networking/gen/*/dist/
+networking/gen/*/node_modules/
+networking/gen/*/src/
+.vite/
+
+# Package uploaded to the Root portal
+rootapp.pkg

@@ -1,0 +1,13 @@
+{
+  "name": "@notas-app/server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "server": "rootsdk start devhost --project-folder=../"
+  },
+  "dependencies": {
+    "sqlite3": "^5.1.7",
+    "knex": "^3.1.0"
+  }
+}

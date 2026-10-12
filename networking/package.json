@@ -1,0 +1,6 @@
+{
+  "name": "@notas-app/networking",
+  "scripts": {
+    "build": "rootsdk build proto"
+  }
+}

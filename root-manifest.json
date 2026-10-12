@@ -1,0 +1,41 @@
+{
+  "id": "ADHNuFPEiQmHeHwPplhEyQ",
+  "version": "2.0.0",
+  "package": {
+    "client": {
+      "deploy": "client/dist"
+    },
+    "server": {
+      "launch": "server/dist/main.js",
+      "deploy": [
+        "server/dist",
+        "networking/gen/server"
+      ],
+      "nodeModules": [
+        "node_modules"
+      ]
+    }
+  },
+  "settings": {
+    "groups": [
+      {
+        "key": "general",
+        "title": "Couch Critics",
+        "items": [
+          {
+            "key": "admins",
+            "title": "App admins",
+            "description": "People and roles who can set up the data sources (the TMDB, OMDb and IGDB keys).",
+            "required": true,
+            "confirmation": "Save",
+            "roleOrMember": {
+              "selectBehavior": "roleMultiAndUserMulti",
+              "userIds": [],
+              "communityRoleIds": []
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

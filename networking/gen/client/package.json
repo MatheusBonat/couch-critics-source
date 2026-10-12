@@ -1,0 +1,13 @@
+{
+  "name": "@notas-app/gen-client",
+  "version": "1.0.1791828786039",
+	"dependencies": {
+		"@notas-app/gen-shared": "file:../shared"
+	},
+  "main": "./dist/mjs/index.js",
+  "typings": "./dist/mjs/index.d.ts",
+	"type": "module",
+	"scripts": { 
+		"build": "tsc"
+	}
+}

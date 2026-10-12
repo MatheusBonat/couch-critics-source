@@ -1,0 +1,414 @@
+syntax = "proto3";
+
+import "rootsdk/types.proto";
+
+enum TitleKind {
+  TITLE_KIND_UNSPECIFIED = 0;
+  TITLE_KIND_MOVIE = 1;
+  TITLE_KIND_SERIES = 2;
+  TITLE_KIND_GAME = 3;
+  // Categorias opcionais (o admin liga em Configurações). Todas vêm de serviços gratuitos e sem chave.
+  TITLE_KIND_BOOK = 4;
+  TITLE_KIND_ANIME = 5;
+  TITLE_KIND_ALBUM = 6;
+}
+
+enum TitleError {
+  TITLE_ERROR_UNSPECIFIED = 0;
+  TITLE_ERROR_NOT_FOUND = 1;
+  TITLE_ERROR_DUPLICATE = 2;
+  TITLE_ERROR_INVALID = 3;
+  TITLE_ERROR_FORBIDDEN = 4;
+  TITLE_ERROR_INVALID_KIND = 5;
+  TITLE_ERROR_INVALID_NAME = 6;
+  TITLE_ERROR_INVALID_YEAR = 7;
+  TITLE_ERROR_INVALID_SCORE = 8;
+  TITLE_ERROR_INVALID_COMMENT = 9;
+  TITLE_ERROR_SOURCE_NOT_CONFIGURED = 10;
+  TITLE_ERROR_SOURCE_INVALID_KEY = 11;
+  TITLE_ERROR_SOURCE_RATE_LIMITED = 12;
+  TITLE_ERROR_SOURCE_UNAVAILABLE = 13;
+  TITLE_ERROR_SOURCE_NOT_FOUND = 14;
+  TITLE_ERROR_NOT_ADMIN = 15;
+  TITLE_ERROR_INVALID_KEY_FORMAT = 16;
+  TITLE_ERROR_EPISODE_NOT_FOUND = 17;
+  // Os mesmos problemas de fonte, mas do IGDB (jogos).
+  TITLE_ERROR_IGDB_NOT_CONFIGURED = 18;
+  TITLE_ERROR_IGDB_INVALID_KEY = 19;
+  TITLE_ERROR_IGDB_RATE_LIMITED = 20;
+  TITLE_ERROR_IGDB_UNAVAILABLE = 21;
+  TITLE_ERROR_IGDB_NOT_FOUND = 22;
+  // Títulos que vieram do TMDB ou do IGDB não podem ser editados à mão.
+  TITLE_ERROR_TITLE_LOCKED = 23;
+  // Reação com emoji que não existe, ou em uma nota que é da própria pessoa.
+  TITLE_ERROR_INVALID_REACTION = 24;
+  TITLE_ERROR_INVALID_STATUS = 25;
+  // Problemas com os catálogos de livros, animes e álbuns (Open Library, AniList e MusicBrainz).
+  TITLE_ERROR_CATALOG_UNAVAILABLE = 26;
+  TITLE_ERROR_CATALOG_RATE_LIMITED = 27;
+  TITLE_ERROR_CATALOG_NOT_FOUND = 28;
+}
+
+// Nota normal: score de 0 a 10, de meio em meio ponto.
+// Nota especial: Peak (acima de 10) conta como 10 na média; Rock Bottom (abaixo de 0) conta como 0.
+enum RatingTier {
+  RATING_TIER_UNSPECIFIED = 0;
+  RATING_TIER_PEAK = 1;
+  RATING_TIER_ROCK_BOTTOM = 2;
+}
+
+// Estado de um título para cada membro: quero ver (jogar), vendo (jogando) e já vi (joguei).
+enum WatchStatus {
+  WATCH_STATUS_UNSPECIFIED = 0;
+  WATCH_STATUS_WANT = 1;
+  WATCH_STATUS_DOING = 2;
+  WATCH_STATUS_DONE = 3;
+}
+
+message WatchEntry {
+  string user_id = 1;
+  WatchStatus status = 2;
+}
+
+// Quem reagiu a uma nota com um emoji.
+message Reaction {
+  string emoji = 1;
+  repeated string user_ids = 2;
+}
+
+message Rating {
+  string user_id = 1;
+  double score = 2;
+  string comment = 3;
+  RatingTier tier = 4;
+  // Quando a nota foi salva pela última vez, em milissegundos (0 = nota antiga, sem data).
+  double rated_at = 5;
+  // O comentário tem spoiler e fica escondido até alguém clicar.
+  bool spoiler = 6;
+  repeated Reaction reactions = 7;
+}
+
+message Title {
+  uint32 id = 1;
+  TitleKind kind = 2;
+  // Nome principal (o original ou o em inglês). name_pt e name_en podem vir vazios.
+  string name = 3;
+  uint32 year = 4;
+  string created_by = 5;
+  repeated Rating ratings = 6;
+  string name_pt = 7;
+  string name_en = 8;
+  // Capa: caminho do TMDB (ex.: "/abc.jpg") ou "igdb:<id da imagem>" nos jogos. Vazio quando o título foi adicionado à mão.
+  string poster_pt = 9;
+  string poster_en = 10;
+  // Nota do IMDb (0 = ainda sem nota) e quantidade de votos.
+  string imdb_id = 11;
+  double imdb_rating = 12;
+  uint32 imdb_votes = 13;
+  // "manual", "tmdb" ou "igdb".
+  string source = 14;
+  string external_id = 15;
+  // Média das notas por episódio (a média das médias de cada episódio avaliado) e quantos episódios têm nota.
+  double episodes_avg = 16;
+  uint32 episodes_rated = 17;
+  // Sinopse e gêneros nos dois idiomas (o IGDB só tem em inglês) e as plataformas dos jogos.
+  string overview_pt = 18;
+  string overview_en = 19;
+  string genres_pt = 20;
+  string genres_en = 21;
+  string platforms = 22;
+  repeated WatchEntry statuses = 23;
+  // Autor (livros) ou artista (álbuns). Vazio nas outras categorias.
+  string creator = 24;
+}
+
+message TitleCreateRequest {
+  TitleKind kind = 1;
+  string name = 2;
+  uint32 year = 3;
+}
+
+message TitleCreateResponse {
+  Title title = 1;
+}
+
+message TitleListRequest {
+}
+
+message TitleListResponse {
+  repeated Title titles = 1;
+}
+
+message TitleDeleteRequest {
+  uint32 id = 1;
+}
+
+message TitleDeleteResponse {
+}
+
+message TitleUpdateRequest {
+  uint32 id = 1;
+  string name = 2;
+  uint32 year = 3;
+}
+
+message TitleUpdateResponse {
+  Title title = 1;
+}
+
+// Admin remove o comentário de alguém (a nota fica). season 0 = comentário do título.
+message CommentRemoveRequest {
+  uint32 title_id = 1;
+  string user_id = 2;
+  uint32 season = 3;
+  uint32 number = 4;
+}
+
+message CommentRemoveResponse {
+  Title title = 1;
+  Episode episode = 2;
+}
+
+// Liga ou desliga a reação de quem pede a uma nota de outra pessoa. season 0 = nota do título.
+message ReactRequest {
+  uint32 title_id = 1;
+  uint32 season = 2;
+  uint32 number = 3;
+  string rating_user_id = 4;
+  string emoji = 5;
+}
+
+message ReactResponse {
+  Title title = 1;
+  Episode episode = 2;
+}
+
+// WATCH_STATUS_UNSPECIFIED limpa o estado de quem pede.
+message WatchStatusRequest {
+  uint32 title_id = 1;
+  WatchStatus status = 2;
+}
+
+message WatchStatusResponse {
+  Title title = 1;
+}
+
+message TitleRateRequest {
+  uint32 title_id = 1;
+  double score = 2;
+  string comment = 3;
+  RatingTier tier = 4;
+  bool spoiler = 5;
+}
+
+message TitleRateResponse {
+  Title title = 1;
+}
+
+message TitleClearRatingRequest {
+  uint32 title_id = 1;
+}
+
+message TitleClearRatingResponse {
+  Title title = 1;
+}
+
+enum SearchStatus {
+  SEARCH_STATUS_UNSPECIFIED = 0;
+  SEARCH_STATUS_OK = 1;
+  SEARCH_STATUS_NOT_CONFIGURED = 2;
+  SEARCH_STATUS_INVALID_KEY = 3;
+  SEARCH_STATUS_RATE_LIMITED = 4;
+  SEARCH_STATUS_UNAVAILABLE = 5;
+  // O título não tem fonte de dados (foi adicionado à mão ou não é série).
+  SEARCH_STATUS_NOT_AVAILABLE = 6;
+}
+
+message SearchResult {
+  // ID no TMDB (filmes e séries) ou no IGDB (jogos), em texto.
+  string external_id = 1;
+  TitleKind kind = 2;
+  // Já no idioma pedido na busca.
+  string name = 3;
+  string original_name = 4;
+  uint32 year = 5;
+  string poster_path = 6;
+  // Diferente de 0 quando a comunidade já tem esse título.
+  uint32 existing_title_id = 7;
+  string creator = 8;
+}
+
+message TitleSearchRequest {
+  TitleKind kind = 1;
+  string query = 2;
+  // "pt" ou "en".
+  string language = 3;
+}
+
+message TitleSearchResponse {
+  SearchStatus status = 1;
+  repeated SearchResult results = 2;
+}
+
+message TitleAddFromSourceRequest {
+  TitleKind kind = 1;
+  string external_id = 2;
+}
+
+message TitleAddFromSourceResponse {
+  Title title = 1;
+}
+
+message SeasonInfo {
+  uint32 number = 1;
+  uint32 episode_count = 2;
+}
+
+message Episode {
+  uint32 season = 1;
+  uint32 number = 2;
+  string name_pt = 3;
+  string name_en = 4;
+  // Data de exibição, "2017-12-01", ou vazio.
+  string air_date = 5;
+  // Nota do IMDb (0 = sem nota) e a do TMDB, usada como alternativa quando o IMDb não tem.
+  double imdb_rating = 6;
+  double tmdb_rating = 7;
+  uint32 tmdb_votes = 8;
+  // Notas dos membros para este episódio.
+  repeated Rating ratings = 9;
+}
+
+message EpisodeListRequest {
+  uint32 title_id = 1;
+  // 0 = a primeira temporada.
+  uint32 season = 2;
+}
+
+message EpisodeListResponse {
+  SearchStatus status = 1;
+  repeated SeasonInfo seasons = 2;
+  // Temporada a que os episódios pertencem.
+  uint32 season = 3;
+  repeated Episode episodes = 4;
+}
+
+message EpisodeRateRequest {
+  uint32 title_id = 1;
+  uint32 season = 2;
+  uint32 number = 3;
+  double score = 4;
+  string comment = 5;
+  RatingTier tier = 6;
+  bool spoiler = 7;
+}
+
+message EpisodeRateResponse {
+  Episode episode = 1;
+  Title title = 2;
+}
+
+message EpisodeClearRatingRequest {
+  uint32 title_id = 1;
+  uint32 season = 2;
+  uint32 number = 3;
+}
+
+message EpisodeClearRatingResponse {
+  Episode episode = 1;
+  Title title = 2;
+}
+
+message EpisodeUpdatedEvent {
+  uint32 title_id = 1;
+  Episode episode = 2;
+}
+
+enum KeyStatus {
+  // Sem chave salva.
+  KEY_STATUS_UNSPECIFIED = 0;
+  KEY_STATUS_CONFIGURED = 1;
+  KEY_STATUS_INVALID = 2;
+  KEY_STATUS_UNREACHABLE = 3;
+}
+
+// Lista de categorias opcionais ligadas pelo admin.
+message KindList {
+  repeated TitleKind kinds = 1;
+}
+
+message SettingsGetRequest {
+}
+
+message SettingsGetResponse {
+  bool is_admin = 1;
+  // Verdadeiro quando ninguém foi escolhido como admin: o primeiro a salvar uma chave vira admin.
+  bool can_claim = 2;
+  KeyStatus tmdb = 3;
+  KeyStatus omdb = 4;
+  KeyStatus igdb = 5;
+  repeated TitleKind enabled_kinds = 6;
+}
+
+message SettingsSaveRequest {
+  // Ausente = não mexe. Texto vazio = apaga a chave.
+  optional string tmdb_token = 1;
+  optional string omdb_key = 2;
+  // O IGDB usa um par (Client ID e Client Secret da Twitch). Os dois vão juntos; os dois vazios apagam as chaves.
+  optional string igdb_client_id = 3;
+  optional string igdb_client_secret = 4;
+  // Ausente = não mexe. Presente = troca a lista (vazia desliga todas as opcionais).
+  optional KindList enabled_kinds = 5;
+}
+
+message SettingsSaveResponse {
+  KeyStatus tmdb = 1;
+  KeyStatus omdb = 2;
+  bool is_admin = 3;
+  KeyStatus igdb = 4;
+  repeated TitleKind enabled_kinds = 5;
+}
+
+message SettingsChangedEvent {
+  KeyStatus tmdb = 1;
+  KeyStatus omdb = 2;
+  KeyStatus igdb = 3;
+  repeated TitleKind enabled_kinds = 4;
+}
+
+message TitleCreatedEvent {
+  Title title = 1;
+}
+
+message TitleUpdatedEvent {
+  Title title = 1;
+}
+
+message TitleDeletedEvent {
+  uint32 id = 1;
+}
+
+service TitleService {
+  rpc Create(TitleCreateRequest) returns (TitleCreateResponse);
+  rpc List(TitleListRequest) returns (TitleListResponse);
+  rpc Delete(TitleDeleteRequest) returns (TitleDeleteResponse);
+  rpc Rate(TitleRateRequest) returns (TitleRateResponse);
+  rpc ClearRating(TitleClearRatingRequest) returns (TitleClearRatingResponse);
+  rpc Search(TitleSearchRequest) returns (TitleSearchResponse);
+  rpc AddFromSource(TitleAddFromSourceRequest) returns (TitleAddFromSourceResponse);
+  rpc GetSettings(SettingsGetRequest) returns (SettingsGetResponse);
+  rpc SaveSettings(SettingsSaveRequest) returns (SettingsSaveResponse);
+  rpc Update(TitleUpdateRequest) returns (TitleUpdateResponse);
+  rpc RemoveComment(CommentRemoveRequest) returns (CommentRemoveResponse);
+  rpc React(ReactRequest) returns (ReactResponse);
+  rpc SetWatchStatus(WatchStatusRequest) returns (WatchStatusResponse);
+  rpc ListEpisodes(EpisodeListRequest) returns (EpisodeListResponse);
+  rpc RateEpisode(EpisodeRateRequest) returns (EpisodeRateResponse);
+  rpc ClearEpisodeRating(EpisodeClearRatingRequest) returns (EpisodeClearRatingResponse);
+
+  rpc BroadcastCreated(TitleCreatedEvent) returns (rootsdk.Void);
+  rpc BroadcastUpdated(TitleUpdatedEvent) returns (rootsdk.Void);
+  rpc BroadcastDeleted(TitleDeletedEvent) returns (rootsdk.Void);
+  rpc BroadcastSettingsChanged(SettingsChangedEvent) returns (rootsdk.Void);
+  rpc BroadcastEpisodeUpdated(EpisodeUpdatedEvent) returns (rootsdk.Void);
+}

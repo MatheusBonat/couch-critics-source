@@ -1,0 +1,13 @@
+{
+  "name": "@notas-app/gen-server",
+  "version": "1.0.1791828786039",
+	"dependencies": {
+		"@notas-app/gen-shared": "file:../shared"
+	},
+  "main": "./dist/cjs/index.js",
+	"type": "commonjs",
+  "typings": "./dist/cjs/index.d.ts",
+	"scripts": { 
+		"build": "tsc"
+	}
+}
