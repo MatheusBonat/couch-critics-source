@@ -4,6 +4,7 @@ import { Night, Title } from "@notas-app/gen-shared";
 import { NightCard } from "./NightCard";
 import { NightForm } from "./NightForm";
 import { useI18n } from "./i18n";
+import { IconParty } from "./icons";
 import { KindInfo } from "./lib";
 import { groupNights, NightGroup } from "./nights";
 
@@ -105,6 +106,9 @@ export function NightsView({
       ) : nights.length === 0 ? (
         !creating && (
           <div className="empty">
+            <span className="empty-icon">
+              <IconParty />
+            </span>
             <p>{t.nights.empty}</p>
           </div>
         )

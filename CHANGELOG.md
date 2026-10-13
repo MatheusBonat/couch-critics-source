@@ -2,6 +2,12 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.4.1] - 2026-10-13
+
+### Changed
+- While a cover is still being fetched (the first time a cover is shown, the server downloads it from the image service and that takes a few seconds), the row shows a moving placeholder instead of the title's initial, so it no longer looks like the cover is missing
+- The empty Party Night screen has an icon, like the other empty screens
+
 ## [2.4.0] - 2026-10-13
 
 ### Added
