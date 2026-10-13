@@ -7,6 +7,8 @@ const searchFields = "key,title,author_name,first_publish_year,cover_i,subject";
 
 async function call(path: string): Promise<Record<string, any>> {
   const { status, body } = await paced("openlibrary", () => getJson(`${base}${path}`, headers));
+  // 422: a busca é curta demais para a Open Library. Não é falha do serviço, só não há resultado.
+  if (status === 422) return {};
   if (status < 200 || status >= 300) failFor("Open Library", status);
   return (body ?? {}) as Record<string, any>;
 }
@@ -93,6 +95,8 @@ async function details(id: string): Promise<CatalogItem> {
 export const openLibrary: Catalog = {
   source: "openlibrary",
   idPattern: /^OL\d{1,12}W$/,
+  // A Open Library recusa (422) buscas com menos de 3 letras.
+  minQuery: 3,
   search,
   details,
   // A busca não traz a sinopse; a página da obra traz.

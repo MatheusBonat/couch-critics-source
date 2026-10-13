@@ -1,6 +1,6 @@
 import { ProviderError } from "./http";
 
-// Os catálogos de livros (Open Library), animes (AniList) e álbuns (MusicBrainz) são gratuitos e sem chave,
+// Os catálogos de livros (Open Library), animes (AniList) e músicas (MusicBrainz) são gratuitos e sem chave,
 // mas pedem que o app se identifique e limitam as consultas.
 export const userAgent = "CouchCritics/2.0 (https://matheusbonat.github.io/couch-critics/)";
 
@@ -11,7 +11,7 @@ export interface CatalogItem {
   // Nome original ou alternativo, mostrado ao lado quando é diferente do nome.
   originalName: string;
   year: number;
-  // Autor (livros) ou artista (álbuns).
+  // Autor (livros) ou artista (músicas).
   creator: string;
   // Capa já com o prefixo da fonte ("ol:", "al:" ou "mb:"); vazio = sem capa.
   poster: string;
@@ -24,6 +24,8 @@ export interface Catalog {
   // Vai em Title.source.
   source: "openlibrary" | "anilist" | "musicbrainz";
   idPattern: RegExp;
+  // Menor tamanho de busca que o serviço aceita (a Open Library recusa buscas com menos de 3 letras). Padrão: 2.
+  minQuery?: number;
   search(query: string): Promise<CatalogItem[]>;
   details(id: string): Promise<CatalogItem>;
   // Completa um item que veio da busca com algo que só a página do item tem (a sinopse dos livros). Opcional.

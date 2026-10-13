@@ -1,4 +1,5 @@
 import { UserProfile } from "@rootsdk/client-app";
+import { CloseButton } from "./CloseButton";
 import { RatingTier, Title } from "@notas-app/gen-shared";
 import { Poster } from "./Poster";
 import { useI18n } from "./i18n";
@@ -62,9 +63,7 @@ export function HallPanel({ titles, me, profiles, onOpen, onClose }: Props) {
         <h2 id="hall-title" className="panel-title">
           {t.hall.title}
         </h2>
-        <button type="button" className="button-quiet" onClick={onClose}>
-          {t.hall.close}
-        </button>
+        <CloseButton label={t.hall.close} onClick={onClose} />
       </div>
 
       {section(t.hall.fame, t.hall.fameHint, t.hall.emptyFame, hallOf(titles, RatingTier.PEAK), t.hall.peaks)}

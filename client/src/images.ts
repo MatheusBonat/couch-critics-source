@@ -5,7 +5,7 @@ const tmdbBase = "https://image.tmdb.org/t/p";
 const igdbBase = "https://images.igdb.com/igdb/image/upload";
 
 // Livros: "ol:<id da capa>" na Open Library. Animes: "al:<caminho>" no servidor de imagens da AniList.
-// Álbuns: "mb:<id do álbum>" no Cover Art Archive (se o álbum não tiver capa, a imagem falha e a tela mostra a inicial).
+// Músicas: "mb:<id do lançamento>" no Cover Art Archive (se não tiver capa, a imagem falha e a tela mostra a inicial).
 const openLibraryBase = "https://covers.openlibrary.org/b/id";
 const aniListBase = "https://s4.anilist.co/file/anilistcdn";
 const coverArtBase = "https://coverartarchive.org/release-group";

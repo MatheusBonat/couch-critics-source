@@ -111,9 +111,9 @@ export interface SourceTitle {
   posterPt: string;
   posterEn: string;
   imdbId: string;
-  // De onde veio o título: "tmdb" (filmes e séries), "igdb" (jogos), "openlibrary" (livros), "anilist" (animes) ou "musicbrainz" (álbuns).
+  // De onde veio o título: "tmdb" (filmes e séries), "igdb" (jogos), "openlibrary" (livros), "anilist" (animes) ou "musicbrainz" (músicas).
   source: "tmdb" | "igdb" | "openlibrary" | "anilist" | "musicbrainz";
-  // Autor (livros) ou artista (álbuns).
+  // Autor (livros) ou artista (músicas).
   creator?: string;
   details?: TitleDetails;
 }

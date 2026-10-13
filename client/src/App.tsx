@@ -9,6 +9,7 @@ import { ImportPanel } from "./ImportPanel";
 import { StatsPanel } from "./StatsPanel";
 import { SettingsPanel, SettingsView } from "./SettingsPanel";
 import { TitleItem } from "./TitleItem";
+import { IconAbout, IconAdd, IconExport, IconHall, IconImport, IconParty, IconNotes, IconSearch, IconSettings, IconStats, IconToWatch, KindIcon } from "./icons";
 import { NightsView } from "./NightsView";
 import { WantList } from "./WantList";
 import { Lang, useI18n } from "./i18n";
@@ -22,6 +23,7 @@ import {
   kinds,
   matchesFilter,
   optionalKinds,
+  posterPathOf,
   pageSize,
   searchKey,
   SortKey,
@@ -76,7 +78,7 @@ const App = () => {
     enabledKinds: [],
   });
 
-  // Filmes, séries e jogos estão sempre nas abas; livros, animes e álbuns só quando o admin liga em Configurações.
+  // Filmes, séries e jogos estão sempre nas abas; livros, animes e músicas só quando o admin liga em Configurações.
   const visibleKinds = useMemo(
     () => kinds.filter((item) => !optionalKinds.includes(item.kind) || settings.enabledKinds.includes(item.kind)),
     [settings.enabledKinds],
@@ -167,6 +169,15 @@ const App = () => {
   const handleNightDeleted = (id: number) => {
     setNights((current) => (current ? current.filter((item) => item.id !== id) : current));
   };
+
+  // Uma capa de um título da comunidade, para o teste das capas nas configurações.
+  const coverSample = useMemo(() => {
+    for (const title of titles ?? []) {
+      const path = posterPathOf(title, lang);
+      if (path) return path;
+    }
+    return "";
+  }, [titles, lang]);
 
   // Títulos que já têm noite marcada, para o aviso "Noite marcada" nas linhas.
   const scheduled = useMemo(() => scheduledByTitle(nights ?? []), [nights]);
@@ -308,11 +319,18 @@ const App = () => {
     downloadCsv("couch-critics-ratings.csv", csv);
   };
 
-  const selectView = (next: ViewKey) => {
-    setView(next);
+  // Um lugar de cada vez: ir para outra visão ou categoria fecha o painel aberto (configurações, estatísticas...), o formulário
+  // de adicionar e o título aberto, e volta ao topo. Antes, com as configurações abertas, clicar em "Filmes" só trocava a aba por baixo.
+  const leave = () => {
+    setPanel("none");
     setAdding(false);
     setOpenId(null);
-    setPanel("none");
+    window.scrollTo({ top: 0 });
+  };
+
+  const selectView = (next: ViewKey) => {
+    setView(next);
+    leave();
   };
 
   // Marca "quero" para mim num título (usado ao adicionar pela lista da turma).
@@ -362,11 +380,12 @@ const App = () => {
   const openSettings = () => {
     setAdding(false);
     setPanel("settings");
+    window.scrollTo({ top: 0 });
   };
 
   const canConfigure = settings.isAdmin || settings.canClaim;
 
-  // Filmes e séries pedem a chave do TMDB, jogos a do IGDB; livros, animes e álbuns não pedem chave nenhuma.
+  // Filmes e séries pedem a chave do TMDB, jogos a do IGDB; livros, animes e músicas não pedem chave nenhuma.
   const sourceStatus =
     kind.kind === TitleKind.GAME
       ? settings.igdb
@@ -382,8 +401,7 @@ const App = () => {
 
   const selectKind = (index: number) => {
     setKindIndex(index);
-    setAdding(false);
-    setOpenId(null);
+    leave();
   };
 
   // Um aviso de erro já mostrado ficaria no idioma antigo, então some ao trocar de idioma.
@@ -402,63 +420,45 @@ const App = () => {
   };
 
   const hasFilter = query.trim() !== "";
-  const toggle = (next: PanelKey) => setPanel(panel === next ? "none" : next);
+  // Abrir um painel fecha o formulário de adicionar e sobe a tela, para o painel aparecer (os botões ficam no rodapé).
+  const toggle = (next: PanelKey) => {
+    if (panel === next) {
+      setPanel("none");
+      return;
+    }
+    setAdding(false);
+    setPanel(next);
+    window.scrollTo({ top: 0 });
+  };
 
   return (
     <main className="app">
-      <div className="view-bar" role="group" aria-label={t.views.label}>
-        <button type="button" className="view-button" aria-pressed={view === "notes"} onClick={() => selectView("notes")}>
-          {t.views.notes}
-        </button>
-        <button type="button" className="view-button" aria-pressed={view === "toWatch"} onClick={() => selectView("toWatch")}>
-          {t.views.toWatch}
-          <span className="tab-count">{titles ? wantTotal : ""}</span>
-        </button>
-        <button type="button" className="view-button" aria-pressed={view === "nights"} onClick={() => selectView("nights")}>
-          {t.views.nights}
-          {openVotes > 0 && (
-            <span className="tab-count night-badge" title={t.nights.badge(openVotes)}>
-              {openVotes}
-            </span>
-          )}
-        </button>
-      </div>
+      <div className="topbar">
+        <nav className="views" aria-label={t.views.label}>
+          <button type="button" className="view-tab" aria-current={view === "notes" ? "page" : undefined} onClick={() => selectView("notes")}>
+            <IconNotes />
+            <span className="view-label">{t.views.notes}</span>
+          </button>
+          <button type="button" className="view-tab" aria-current={view === "toWatch" ? "page" : undefined} onClick={() => selectView("toWatch")}>
+            <IconToWatch />
+            <span className="view-label">{t.views.toWatch}</span>
+            {titles && wantTotal > 0 && <span className="count">{wantTotal}</span>}
+          </button>
+          <button type="button" className="view-tab" aria-current={view === "nights" ? "page" : undefined} onClick={() => selectView("nights")}>
+            <IconParty />
+            <span className="view-label">{t.views.nights}</span>
+            {openVotes > 0 && (
+              <span className="count is-live" title={t.nights.badge(openVotes)}>
+                {openVotes}
+              </span>
+            )}
+          </button>
+        </nav>
 
-      <header className="bar">
-        {view === "notes" ? (
-        <div className="tab-bar" role="tablist" aria-label={t.category}>
-          {visibleKinds.map((item, index) => (
-            <button
-              key={item.kind}
-              id={`tab-${index}`}
-              type="button"
-              role="tab"
-              className="tab"
-              aria-selected={index === kindIndex}
-              aria-controls="titles-panel"
-              tabIndex={index === kindIndex ? 0 : -1}
-              onClick={() => selectKind(index)}
-              onKeyDown={onTabKeyDown}
-            >
-              {t.kinds[item.key].tab}
-              <span className="tab-count">{titles ? countByKind(index) : ""}</span>
-            </button>
-          ))}
-        </div>
-        ) : (
-          <span />
-        )}
-
-        <div className="bar-actions">
-          {!adding && view === "notes" && (
-            <button type="button" className="button-primary" onClick={() => startAdding("")}>
-              {kindText.add}
-            </button>
-          )}
-
+        <div className="tools">
           {canConfigure && (
-            <button type="button" className="button-quiet" onClick={() => toggle("settings")}>
-              {t.settings.open}
+            <button type="button" className="icon-button" aria-label={t.settings.open} title={t.settings.open} aria-pressed={panel === "settings"} onClick={() => toggle("settings")}>
+              <IconSettings />
             </button>
           )}
 
@@ -467,6 +467,7 @@ const App = () => {
               <button
                 key={item.lang}
                 type="button"
+                className="button-quiet"
                 lang={item.lang}
                 aria-label={item.name}
                 aria-pressed={lang === item.lang}
@@ -477,7 +478,30 @@ const App = () => {
             ))}
           </div>
         </div>
-      </header>
+      </div>
+
+      {view === "notes" && (
+        <div className="kinds" role="tablist" aria-label={t.category}>
+          {visibleKinds.map((item, index) => (
+            <button
+              key={item.kind}
+              id={`tab-${index}`}
+              type="button"
+              role="tab"
+              className="kind-tab"
+              aria-selected={index === kindIndex}
+              aria-controls="titles-panel"
+              tabIndex={index === kindIndex ? 0 : -1}
+              onClick={() => selectKind(index)}
+              onKeyDown={onTabKeyDown}
+            >
+              <KindIcon kind={item.key} />
+              <span>{t.kinds[item.key].tab}</span>
+              <span className="count">{titles ? countByKind(index) : ""}</span>
+            </button>
+          ))}
+        </div>
+      )}
 
       {notice && (
         <p className="status-banner" role="alert">
@@ -490,6 +514,7 @@ const App = () => {
           settings={settings}
           onChanged={(next) => setSettings((current) => ({ ...current, ...next }))}
           onClose={() => setPanel("none")}
+          coverSample={coverSample}
         />
       )}
 
@@ -525,7 +550,7 @@ const App = () => {
       )}
 
       {view === "nights" ? (
-        <section id="nights-panel" aria-label={t.nights.title}>
+        <section id="nights-panel" className="view-enter" aria-label={t.nights.title}>
           <NightsView
             nights={nights}
             hasMoreNights={nightsMore.hasMore}
@@ -546,9 +571,10 @@ const App = () => {
           />
         </section>
       ) : view === "toWatch" ? (
-        <section id="to-watch-panel" aria-label={t.toWatch.title} aria-busy={titles === null && !loadFailure}>
+        <section id="to-watch-panel" className="view-enter" aria-label={t.toWatch.title} aria-busy={titles === null && !loadFailure}>
           {loadFailure ? (
             <div className="empty">
+              <span className="empty-icon"><IconAbout /></span>
               <p>{errorMessage(loadFailure.error, t)}</p>
               <button type="button" className="button-outline" onClick={load}>
                 {t.tryAgain}
@@ -583,15 +609,18 @@ const App = () => {
       ) : (
       <section
         id="titles-panel"
+        className="view-enter"
+        key={kindIndex}
         role="tabpanel"
         aria-labelledby={`tab-${kindIndex}`}
         aria-busy={titles === null && !loadFailure}
       >
-        <div className="toolbar">
-          <div className="field toolbar-search">
+        <div className="filters">
+          <div className="field search-field">
             <label htmlFor="search" className="visually-hidden">
               {t.searchIn(kindText.plural)}
             </label>
+            <IconSearch />
             <input
               id="search"
               className="input"
@@ -602,20 +631,17 @@ const App = () => {
             />
           </div>
 
-          <div className="field toolbar-filter">
+          <div className="field">
             <label htmlFor="filter" className="visually-hidden">
               {t.filters.label}
             </label>
             <select id="filter" className="input" value={filter} onChange={(event) => setFilter(event.target.value as FilterKey)}>
               <option value="all">{t.filters.all}</option>
               <option value="unrated">{t.filters.notRatedByMe}</option>
-              <option value="want">{t.watch.labels[kind.key].want}</option>
-              <option value="doing">{t.watch.labels[kind.key].doing}</option>
-              <option value="done">{t.watch.labels[kind.key].done}</option>
             </select>
           </div>
 
-          <div className="field toolbar-sort">
+          <div className="field">
             <label htmlFor="sort" className="visually-hidden">
               {t.sortBy}
             </label>
@@ -627,10 +653,16 @@ const App = () => {
               ))}
             </select>
           </div>
+
+          <button type="button" className="button-primary" disabled={adding} onClick={() => startAdding("")}>
+            <IconAdd />
+            {kindText.add}
+          </button>
         </div>
 
         {loadFailure ? (
           <div className="empty">
+            <span className="empty-icon"><IconAbout /></span>
             <p>{errorMessage(loadFailure.error, t)}</p>
             <button type="button" className="button-outline" onClick={load}>
               {t.tryAgain}
@@ -647,6 +679,7 @@ const App = () => {
           </ul>
         ) : visible.length === 0 ? (
           <div className="empty">
+            <span className="empty-icon"><KindIcon kind={kind.key} /></span>
             {filter !== "all" && !hasFilter && countByKind(Math.min(kindIndex, visibleKinds.length - 1)) > 0 ? (
               <p>{filter === "unrated" ? t.filters.allRated : t.filters.none}</p>
             ) : hasFilter ? (
@@ -698,19 +731,24 @@ const App = () => {
       )}
 
       <footer className="app-footer">
-        <button type="button" className="button-quiet" onClick={() => toggle("stats")}>
+        <button type="button" className="button-quiet" aria-pressed={panel === "stats"} onClick={() => toggle("stats")}>
+          <IconStats />
           {t.stats.link}
         </button>
-        <button type="button" className="button-quiet" onClick={() => toggle("hall")}>
+        <button type="button" className="button-quiet" aria-pressed={panel === "hall"} onClick={() => toggle("hall")}>
+          <IconHall />
           {t.hall.link}
         </button>
-        <button type="button" className="button-quiet" onClick={() => toggle("import")}>
+        <button type="button" className="button-quiet" aria-pressed={panel === "import"} onClick={() => toggle("import")}>
+          <IconImport />
           {t.importer.link}
         </button>
         <button type="button" className="button-quiet" disabled={shownTitles.length === 0} onClick={exportCsv}>
+          <IconExport />
           {t.exportCsv}
         </button>
-        <button type="button" className="button-quiet" onClick={() => toggle("about")}>
+        <button type="button" className="button-quiet" aria-pressed={panel === "about"} onClick={() => toggle("about")}>
+          <IconAbout />
           {t.about.link}
         </button>
       </footer>

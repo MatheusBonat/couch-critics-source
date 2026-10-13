@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { CSSProperties, useState } from "react";
 import { UserProfile } from "@rootsdk/client-app";
 import { Night, Rating, RatingTier, Title, TitleKind, WatchStatus } from "@notas-app/gen-shared";
 import { titleServiceClient } from "@notas-app/gen-client";
@@ -28,9 +28,11 @@ interface Props {
   wantedBy?: string[];
   // A noite marcada em que este título foi o escolhido (decidida e ainda por acontecer).
   scheduled?: Night;
+  // O estado "quero ver / vendo / já vi" só aparece na lista "Para ver / jogar", não na tela de notas.
+  showWatch?: boolean;
 }
 
-export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled }: Props) {
+export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled, showWatch = false }: Props) {
   const { t, lang } = useI18n();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -112,7 +114,10 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
     <li className="title" id={`title-${title.id}`}>
       <button type="button" className="title-head" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
         <span className="score-col">
-          <span className={avg === null ? "score score-none" : "score"}>
+          <span
+            className={avg === null ? "score score-none" : "score"}
+            style={avg === null ? undefined : ({ "--p": Math.max(0, Math.min(100, avg * 10)) } as CSSProperties)}
+          >
             {avg === null ? "-" : formatScore(avg, t.locale)}
           </span>
           {imdb && (
@@ -159,7 +164,7 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
           {hasEpisodes && title.episodesRated > 0 && (
             <span className="episodes-summary">{t.episodes.summary(formatScore(title.episodesAvg, t.locale))}</span>
           )}
-          {statusLabel && <span className="watch-pill">{statusLabel}</span>}
+          {showWatch && statusLabel && <span className="watch-pill">{statusLabel}</span>}
         </span>
       </button>
 
@@ -173,7 +178,7 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
             <p className="muted">{t.nobodyRated}</p>
           )}
 
-          <WatchControls title={title} me={me} profiles={profiles} onChanged={onChanged} onError={onError} />
+          {showWatch && <WatchControls title={title} me={me} profiles={profiles} onChanged={onChanged} onError={onError} />}
 
           <RatingEditor
             key={mine ? `${mine.score}-${mine.tier}-${mine.comment}-${mine.spoiler}` : "new"}

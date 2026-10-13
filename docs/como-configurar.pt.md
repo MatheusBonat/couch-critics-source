@@ -80,14 +80,14 @@ O botão **Salvar** fica cinza enquanto o campo estiver vazio. No bloco do IGDB,
 
 ---
 
-## Opcional: livros, animes e álbuns
+## Opcional: livros, animes e músicas
 
 Abaixo dos três blocos de chaves há um bloco **Categorias** com três caixas: **Livros (Open Library)**, **Animes (AniList)** e **Álbuns (MusicBrainz)**.
 
 - Elas são opcionais e **não precisam de chave nenhuma**: os serviços são gratuitos e abertos.
 - Marque as que a comunidade quer usar. Cada caixa grava na hora, e uma aba nova aparece para todo mundo.
 - Desmarque uma caixa para esconder a aba. Os títulos que já foram adicionados ficam guardados e voltam se você marcar de novo.
-- Os animes também são achados pelo nome original (por exemplo "Shingeki no Kyojin"). Nem todo livro ou álbum tem capa.
+- Os animes também são achados pelo nome original (por exemplo "Shingeki no Kyojin"). Nem todo livro ou música tem capa.
 
 ---
 
@@ -178,7 +178,7 @@ Se a busca disser que a fonte não foi ativada, volte em **Configurações** e c
 
 **Preciso das três?** Não. Cada chave liga um recurso, como mostra a tabela da seção 2.
 
-**Livros, animes e álbuns precisam de chave?** Não. É só marcar no bloco **Categorias**.
+**Livros, animes e músicas precisam de chave?** Não. É só marcar no bloco **Categorias**.
 
 **Mais de um admin pode configurar as chaves?** Sim. Qualquer pessoa em **App admins** pode colar, trocar ou remover.
 

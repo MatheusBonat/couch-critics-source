@@ -1,8 +1,10 @@
 import { useId, useState } from "react";
+import { CloseButton } from "./CloseButton";
 import { KeyStatus, SettingsSaveResponse, TitleKind } from "@notas-app/gen-shared";
 import { titleServiceClient } from "@notas-app/gen-client";
 import { useI18n } from "./i18n";
 import { errorMessage } from "./lib";
+import { CoverCheck } from "./CoverCheck";
 
 export interface SettingsView {
   isAdmin: boolean;
@@ -10,7 +12,7 @@ export interface SettingsView {
   tmdb: KeyStatus;
   omdb: KeyStatus;
   igdb: KeyStatus;
-  // Categorias opcionais ligadas pelo admin (livros, animes e álbuns).
+  // Categorias opcionais ligadas pelo admin (livros, animes e músicas).
   enabledKinds: TitleKind[];
 }
 
@@ -18,6 +20,8 @@ interface Props {
   settings: SettingsView;
   onChanged: (next: Partial<SettingsView>) => void;
   onClose: () => void;
+  // Uma capa de um título da comunidade, para o teste das capas.
+  coverSample: string;
 }
 
 interface FieldProps {
@@ -169,7 +173,7 @@ function KeyField({ name, help, status, labels, save }: FieldProps) {
   );
 }
 
-// Categorias opcionais: livros, animes e álbuns (serviços gratuitos, sem chave). Cada caixa grava na hora.
+// Categorias opcionais: livros, animes e músicas (serviços gratuitos, sem chave). Cada caixa grava na hora.
 function Categories({ enabled, save }: { enabled: TitleKind[]; save: (kinds: TitleKind[]) => Promise<void> }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false);
@@ -226,7 +230,7 @@ function Categories({ enabled, save }: { enabled: TitleKind[]; save: (kinds: Tit
   );
 }
 
-export function SettingsPanel({ settings, onChanged, onClose }: Props) {
+export function SettingsPanel({ settings, onChanged, onClose, coverSample }: Props) {
   const { t } = useI18n();
 
   // Depois de salvar, a tela já passa a mostrar quem é admin e o estado de cada chave.
@@ -279,9 +283,7 @@ export function SettingsPanel({ settings, onChanged, onClose }: Props) {
         <h2 id="settings-title" className="panel-title">
           {t.settings.title}
         </h2>
-        <button type="button" className="button-quiet" onClick={onClose}>
-          {t.settings.close}
-        </button>
+        <CloseButton label={t.settings.close} onClick={onClose} />
       </div>
 
       <p className="muted">{t.settings.intro}</p>
@@ -329,6 +331,8 @@ export function SettingsPanel({ settings, onChanged, onClose }: Props) {
           ))}
         </ol>
       </details>
+
+      {settings.isAdmin && <CoverCheck samplePath={coverSample} />}
     </section>
   );
 }

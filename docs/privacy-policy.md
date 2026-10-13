@@ -1,8 +1,8 @@
 # Couch Critics: Privacy Policy
 
-Last updated: October 12, 2026
+Last updated: October 13, 2026
 
-Couch Critics is a free, independent Root App that lets the members of a community rate movies, series, games, books, anime and albums, and plan movie or game nights together. Português logo abaixo.
+Couch Critics is a free, independent Root App that lets the members of a community rate movies, series, games, books, anime and songs, and plan movie or game nights together. Português logo abaixo.
 
 ## What the app stores
 
@@ -11,6 +11,7 @@ Couch Critics stores, in the database of the community where it is installed (ho
 - the scores and comments that members write, and the emoji reactions they give to other people's ratings;
 - who added each title, and the "want to watch / watching / watched" status each member sets;
 - the nights that members plan: name, date and time, the title options, each member's vote and each member's attendance answer (going, maybe or not going);
+- a copy of the cover images of the titles, downloaded from the services below (it holds no personal data);
 - the data-source keys that the community's admins paste in the app's Settings (TMDB, OMDb and IGDB/Twitch). Once saved, the keys are never shown again.
 
 Scores, comments, reactions, watch status, votes and attendance answers are visible to every member of that community. Votes in a night are public: everyone can see who voted for what.
@@ -21,7 +22,7 @@ Only the community where the app is installed, and the Root platform that hosts 
 
 ## Third-party services
 
-To search for titles, the app's server sends the search text and title IDs to TMDB, OMDb and IGDB (through Twitch). Covers are loaded by each member's device directly from the image servers of TMDB and IGDB, which can see that device's IP address. These services have their own privacy policies. If the admins turn on the optional categories, the server also sends the search text to Open Library (books), AniList (anime) and MusicBrainz (albums), and each member's device loads covers from the image servers of Open Library, AniList and the Cover Art Archive, which can see that device's IP address.
+To search for titles, the app's server sends the search text and title IDs to TMDB, OMDb and IGDB (through Twitch). These services have their own privacy policies. If the admins turn on the optional categories, the server also sends the search text to Open Library (books), AniList (anime) and MusicBrainz (songs). Covers are downloaded by the app's server from the image servers of these services and kept in the community's database, so members' devices get them from the app and do not contact the image servers. If the server cannot get a cover, a member's device may try the image server directly, which can then see that device's IP address.
 
 When a member imports a spreadsheet of ratings, the file is read on that member's own device; only the ratings the member confirms are sent to the app.
 
@@ -51,9 +52,9 @@ Root user: MalphasW (send a message on Root).
 
 # Couch Critics: Política de Privacidade
 
-Última atualização: 12 de outubro de 2026
+Última atualização: 13 de outubro de 2026
 
-O Couch Critics é um app gratuito e independente do Root em que os membros de uma comunidade dão nota a filmes, séries, jogos, livros, animes e álbuns e combinam juntos noites de filme ou jogo.
+O Couch Critics é um app gratuito e independente do Root em que os membros de uma comunidade dão nota a filmes, séries, jogos, livros, animes e músicas e combinam juntos noites de filme ou jogo.
 
 ## O que o app guarda
 
@@ -62,6 +63,7 @@ O Couch Critics guarda, no banco de dados da comunidade onde está instalado (ho
 - as notas e os comentários que os membros escrevem, e as reações com emoji que dão às notas dos outros;
 - quem adicionou cada título e o estado "quero ver / vendo / já vi" que cada membro marca;
 - as noites que os membros combinam: nome, data e hora, as opções de título, o voto de cada membro e a resposta de presença de cada membro (vou, talvez ou não vou);
+- uma cópia das capas dos títulos, baixadas dos serviços abaixo (não contém dados pessoais);
 - as chaves das fontes de dados que os admins da comunidade colam nas Configurações do app (TMDB, OMDb e IGDB/Twitch). Depois de salvas, as chaves nunca voltam a aparecer na tela.
 
 As notas, os comentários, as reações, o estado dos títulos, os votos e as respostas de presença são visíveis para todos os membros dessa comunidade. Os votos de uma noite são abertos: todo mundo vê quem votou em quê.
@@ -72,7 +74,7 @@ Somente a comunidade onde o app está instalado e a plataforma Root, que o hospe
 
 ## Serviços de terceiros
 
-Para buscar títulos, o servidor do app envia o texto da busca e os IDs dos títulos ao TMDB, ao OMDb e ao IGDB (pela Twitch). As capas são carregadas diretamente pelo aparelho de cada membro, nos servidores de imagens do TMDB e do IGDB, que podem ver o endereço IP desse aparelho. Esses serviços têm as próprias políticas de privacidade. Se os admins ligarem as categorias opcionais, o servidor também envia o texto da busca à Open Library (livros), à AniList (animes) e à MusicBrainz (álbuns), e o aparelho de cada membro carrega capas dos servidores de imagens da Open Library, da AniList e do Cover Art Archive, que podem ver o endereço IP desse aparelho.
+Para buscar títulos, o servidor do app envia o texto da busca e os IDs dos títulos ao TMDB, ao OMDb e ao IGDB (pela Twitch). Esses serviços têm as próprias políticas de privacidade. Se os admins ligarem as categorias opcionais, o servidor também envia o texto da busca à Open Library (livros), à AniList (animes) e à MusicBrainz (músicas). As capas são baixadas pelo servidor do app, nos servidores de imagens desses serviços, e guardadas no banco de dados da comunidade; assim, os aparelhos dos membros recebem as capas pelo app e não acessam os servidores de imagens. Se o servidor não conseguir uma capa, o aparelho do membro pode tentar o servidor de imagens diretamente, que então pode ver o endereço IP desse aparelho.
 
 Quando um membro importa uma planilha de notas, o arquivo é lido no próprio aparelho dele; só as notas que ele confirmar são enviadas ao app.
 

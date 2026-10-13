@@ -1,4 +1,5 @@
 import { ChangeEvent, useRef, useState } from "react";
+import { CloseButton } from "./CloseButton";
 import { RatingTier, SearchResult, SearchStatus, Title, TitleKind } from "@notas-app/gen-shared";
 import { titleServiceClient } from "@notas-app/gen-client";
 import { useI18n } from "./i18n";
@@ -231,9 +232,7 @@ export function ImportPanel({ titles, me, defaultKind, allowedKinds, onImported,
         <h2 id="import-title" className="panel-title">
           {t.importer.title}
         </h2>
-        <button type="button" className="button-quiet" disabled={step === "importing"} onClick={onClose}>
-          {t.importer.close}
-        </button>
+        <CloseButton label={t.importer.close} disabled={step === "importing"} onClick={onClose} />
       </div>
 
       {step === "pick" && (

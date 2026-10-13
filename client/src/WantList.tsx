@@ -101,10 +101,10 @@ export function WantList({ titles, visibleKinds, me, isAdmin, profiles, openId, 
         </div>
 
         <div className="want-actions">
-          <label className="want-mine">
-            <input type="checkbox" checked={onlyMine} onChange={(event) => setOnlyMine(event.target.checked)} />
+          <button type="button" className="want-chip want-mine" aria-pressed={onlyMine} onClick={() => setOnlyMine((current) => !current)}>
+            {onlyMine && <span aria-hidden="true">✓</span>}
             {t.toWatch.onlyMine}
-          </label>
+          </button>
           <button type="button" className="button-primary" onClick={() => onAdd(addTarget)}>
             {addLabel}
           </button>
@@ -136,6 +136,7 @@ export function WantList({ titles, visibleKinds, me, isAdmin, profiles, openId, 
                 open={openId === item.title.id}
                 profiles={profiles}
                 wantedBy={item.wanters}
+                showWatch
                 scheduled={scheduled.get(item.title.id)}
                 onToggle={() => onToggle(item.title.id)}
                 onChanged={onChanged}

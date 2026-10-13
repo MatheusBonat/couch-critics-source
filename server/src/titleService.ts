@@ -104,7 +104,7 @@ async function requireEnabled(kind: TitleKind): Promise<void> {
   if (optionalKinds.includes(kind) && !(await enabledKinds()).includes(kind)) fail(TitleError.INVALID_KIND, "This category is turned off.");
 }
 
-// Livros, animes e álbuns vêm de catálogos gratuitos e sem chave.
+// Livros, animes e músicas vêm de catálogos gratuitos e sem chave.
 const catalogs: Partial<Record<TitleKind, Catalog>> = {
   [TitleKind.BOOK]: openLibrary,
   [TitleKind.ANIME]: aniList,
@@ -358,12 +358,12 @@ export class TitleService extends TitleServiceBase {
     }
   }
 
-  // Livros, animes e álbuns: busca no catálogo da categoria (sem chave). Resultados repetidos vêm do cache.
+  // Livros, animes e músicas: busca no catálogo da categoria (sem chave). Resultados repetidos vêm do cache.
   private async searchCatalog(request: TitleSearchRequest, catalog: Catalog): Promise<TitleSearchResponse> {
     await requireEnabled(request.kind);
 
     const query = request.query.trim().replace(/\s+/g, " ").slice(0, 100);
-    if (query.length < 2) return { status: SearchStatus.OK, results: [] };
+    if (query.length < (catalog.minQuery ?? 2)) return { status: SearchStatus.OK, results: [] };
 
     try {
       const cacheKey = `${request.kind}:${query.toLowerCase()}`;

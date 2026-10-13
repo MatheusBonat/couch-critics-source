@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { CloseButton } from "./CloseButton";
 import { UserProfile } from "@rootsdk/client-app";
 import { RatingTier, Title } from "@notas-app/gen-shared";
 import { Poster } from "./Poster";
@@ -37,9 +38,7 @@ export function StatsPanel({ titles, me, profiles, onOpen, onClose }: Props) {
         <h2 id="stats-title" className="panel-title">
           {t.stats.title}
         </h2>
-        <button type="button" className="button-quiet" onClick={onClose}>
-          {t.stats.close}
-        </button>
+        <CloseButton label={t.stats.close} onClick={onClose} />
       </div>
 
       <div className="stats-tabs" role="group" aria-label={t.stats.title}>

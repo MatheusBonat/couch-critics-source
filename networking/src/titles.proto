@@ -43,7 +43,7 @@ enum TitleError {
   // Reação com emoji que não existe, ou em uma nota que é da própria pessoa.
   TITLE_ERROR_INVALID_REACTION = 24;
   TITLE_ERROR_INVALID_STATUS = 25;
-  // Problemas com os catálogos de livros, animes e álbuns (Open Library, AniList e MusicBrainz).
+  // Problemas com os catálogos de livros, animes e músicas (Open Library, AniList e MusicBrainz).
   TITLE_ERROR_CATALOG_UNAVAILABLE = 26;
   TITLE_ERROR_CATALOG_RATE_LIMITED = 27;
   TITLE_ERROR_CATALOG_NOT_FOUND = 28;
@@ -129,7 +129,7 @@ message Title {
   string genres_en = 21;
   string platforms = 22;
   repeated WatchEntry statuses = 23;
-  // Autor (livros) ou artista (álbuns). Vazio nas outras categorias.
+  // Autor (livros) ou artista (músicas). Vazio nas outras categorias.
   string creator = 24;
 }
 
@@ -544,4 +544,32 @@ service NightService {
 
   rpc BroadcastUpdated(NightUpdatedEvent) returns (rootsdk.Void);
   rpc BroadcastDeleted(NightDeletedEvent) returns (rootsdk.Void);
+}
+
+// ---------- Capas pelo servidor (versão 2.2.1) ----------
+// O cliente do app não acessa a internet direto (todo o tráfego passa pelo cliente do Root), e no Root as capas que vêm de
+// endereços externos (TMDB, IGDB...) podem não carregar. Por isso o servidor baixa cada capa uma vez, guarda no banco
+// e entrega os bytes ao cliente, que mostra a imagem a partir deles.
+
+message CoverRequest {
+  // As capas pedidas, do jeito que ficam guardadas no título: "/abc.jpg" (TMDB), "igdb:<id>", "ol:<id>", "al:<caminho>"
+  // ou "mb:<id>". No máximo 6 por pedido, para a resposta ficar abaixo de 256 KiB.
+  repeated string paths = 1;
+}
+
+message Cover {
+  string path = 1;
+  // Tipo da imagem ("image/jpeg"...). Vazio quando não há capa para este título.
+  string mime = 2;
+  bytes data = 3;
+  // A capa não coube nesta resposta ou o serviço de imagens falhou agora: vale pedir de novo depois.
+  bool retry = 4;
+}
+
+message CoverResponse {
+  repeated Cover covers = 1;
+}
+
+service CoverService {
+  rpc Get(CoverRequest) returns (CoverResponse);
 }

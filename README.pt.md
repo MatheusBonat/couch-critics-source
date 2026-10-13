@@ -2,7 +2,7 @@
 
 # 🛋️ Couch Critics
 
-**Deem nota a filmes, séries, jogos, livros, animes e álbuns com a sua comunidade e combinem a próxima noite de filme.**
+**Deem nota a filmes, séries, jogos, livros, animes e músicas com a sua comunidade e combinem a próxima noite de filme.**
 
 Um app gratuito e de código aberto para o [Root](https://www.rootapp.com). Todo mundo dá nota, todo mundo vê as notas e a turma decide junta o que ver ou jogar a seguir.
 
@@ -29,12 +29,12 @@ Um app gratuito e de código aberto para o [Root](https://www.rootapp.com). Todo
 - Reações com emoji nas notas dos outros, comentários com spoiler e nota por episódio nas séries
 
 **Achar e adicionar títulos**
-- Busca com capa, sinopse e gêneros, em português ou inglês: filmes e séries (TMDB), jogos (IGDB) e, opcionalmente, livros (Open Library), animes (AniList) e álbuns (MusicBrainz), que não precisam de chave de API
+- Busca com capa, sinopse e gêneros, em português ou inglês: filmes e séries (TMDB), jogos (IGDB) e, opcionalmente, livros (Open Library), animes (AniList) e músicas (MusicBrainz), que não precisam de chave de API
 - Importe suas notas antigas de uma planilha (CSV) e exporte as suas
 
 **Decidir o que vem a seguir**
 - **Para ver / jogar**: a lista da turma com tudo que alguém quer ver, jogar, ler ou ouvir, mostrando quem quer cada um. O que você já terminou sai só da sua lista
-- **Noite**: combine uma noite de filme ou jogo. Escolha de 2 a 8 títulos, defina o prazo da votação, todo mundo vota (os votos são abertos) e diz se vai. O vencedor vira uma noite marcada, e as notificações do Root lembram quem vai
+- **Party Night**: combine uma noite de filme ou jogo. Escolha de 2 a 8 títulos, defina o prazo da votação, todo mundo vota (os votos são abertos) e diz se vai. O vencedor vira uma noite marcada, e as notificações do Root lembram quem vai
 
 **Conhecer a turma**
 - Quem pensa parecido com você, os títulos que racham o grupo, o seu ano em notas e o Hall da fama e da vergonha
@@ -93,13 +93,13 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 
 <img src="docs/screenshots/05-search.png" alt="Buscando um filme com capas" width="100%"><br>
 <b>Busca com capas</b><br>
-<sub>Filmes, séries, jogos, livros, animes e álbuns, em português ou inglês. Não achou? Adicione à mão.</sub>
+<sub>Filmes, séries, jogos, livros, animes e músicas, em português ou inglês. Não achou? Adicione à mão.</sub>
 
 </td>
 <td width="33%" valign="top">
 
 <img src="docs/screenshots/06-books.png" alt="A categoria de livros" width="100%"><br>
-<b>Livros, animes e álbuns</b><br>
+<b>Livros, animes e músicas</b><br>
 <sub>Categorias opcionais que não precisam de chave de API: o admin liga em Configurações.</sub>
 
 </td>
@@ -127,7 +127,7 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 <td width="50%" valign="top">
 
 <img src="docs/screenshots/09-night-voting.png" alt="Uma noite com votos abertos" width="100%"><br>
-<b>Noite: vote e diga se vai</b><br>
+<b>Party Night: vote e diga se vai</b><br>
 <sub>Escolha de 2 a 8 títulos, defina um prazo, todo mundo vota (os votos são abertos) e responde Vou / Talvez / Não vou.</sub>
 
 </td>
@@ -203,14 +203,14 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 
 ## 🆕 Novidades
 
-**2.2.0**: a lista **Para ver / jogar** e a **Noite**, para decidir juntos o que ver ou jogar. **2.0.1**: a lista de títulos é paginada e continua funcionando com centenas de títulos. **2.0.0**: livros, animes e álbuns e importação de planilha.
+**2.3.0**: visual novo, e cada botão leva para onde diz (os painéis abertos fecham quando você troca de categoria ou de tela). **2.2.1**: as capas aparecem dentro do Root, a categoria **Músicas** e a noite virou **Party Night**. **2.2.0**: a lista **Para ver / jogar** e a **Party Night**, para decidir juntos o que ver ou jogar. **2.0.1**: a lista de títulos é paginada e continua funcionando com centenas de títulos. **2.0.0**: livros, animes e músicas e importação de planilha.
 
 Veja o [CHANGELOG](CHANGELOG.md) (em inglês) e as [releases](https://github.com/MatheusBonat/couch-critics-source/releases). Clique em **Watch → Custom → Releases** nesta página para ser avisado de cada versão nova.
 
 ## 🚀 Configurar
 
 1. Instale o Couch Critics na sua comunidade do Root e escolha, na instalação, quem são os admins do app. O dono da comunidade é sempre admin.
-2. Os admins abrem **Configurações** e colam as chaves gratuitas de que precisam (TMDB para filmes e séries, OMDb para a nota do IMDb, IGDB/Twitch para jogos). Livros, animes e álbuns não precisam de chave. Sem nenhuma chave o app funciona, só com títulos adicionados à mão.
+2. Os admins abrem **Configurações** e colam as chaves gratuitas de que precisam (TMDB para filmes e séries, OMDb para a nota do IMDb, IGDB/Twitch para jogos). Livros, animes e músicas não precisam de chave. Sem nenhuma chave o app funciona, só com títulos adicionados à mão.
 3. Todo mundo adiciona títulos, dá nota e combina noites.
 
 Passo a passo: [como conseguir as chaves](docs/chaves-de-api.pt.md) e [como configurar](docs/como-configurar.pt.md). Cada comunidade usa as **suas** chaves gratuitas, e o app avisa os admins quando um serviço recusa uma.

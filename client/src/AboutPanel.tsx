@@ -1,4 +1,5 @@
 import { useI18n } from "./i18n";
+import { CloseButton } from "./CloseButton";
 import tmdbLogo from "./assets/tmdb-logo.svg";
 
 interface Props {
@@ -21,9 +22,7 @@ export function AboutPanel({ onClose }: Props) {
         <h2 id="about-title" className="panel-title">
           {t.about.title}
         </h2>
-        <button type="button" className="button-quiet" onClick={onClose}>
-          {t.about.close}
-        </button>
+        <CloseButton label={t.about.close} onClick={onClose} />
       </div>
 
       <p className="muted">{t.about.intro}</p>

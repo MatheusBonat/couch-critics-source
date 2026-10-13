@@ -11,7 +11,7 @@ Each community that installs the app uses its **own free keys**, which the app a
 | TMDB | movies and series, covers, episodes | yes |
 | OMDb | IMDb ratings | yes |
 | IGDB (Twitch) | games | yes (Client ID and Client Secret) |
-| Open Library, AniList, MusicBrainz + Cover Art Archive | books, anime, albums (optional categories) | no |
+| Open Library, AniList, MusicBrainz + Cover Art Archive | books, anime, songs (optional categories) | no |
 
 The app admins are chosen when the app is installed (the "App admins" setting), and the community owner is always an admin. When a service rejects a saved key, the app warns the admins in the app log inside Root. Without keys the app still works with titles added by hand. Guides: [how to get the keys](api-keys.en.md) and [how to set them up](how-to-set-up.en.md) (also in Portuguese: [chaves](chaves-de-api.pt.md), [configurar](como-configurar.pt.md)).
 
@@ -26,8 +26,10 @@ The privacy policy of the published app is in [privacy-policy.md](privacy-policy
 | `server/src/providers` | TMDB, OMDb, IGDB/Twitch, Open Library, AniList and MusicBrainz clients (timeouts, pacing, clear errors) |
 | `server/src/access.ts` | Who is an admin of the app |
 | `server/src/nightService.ts`, `nightRepository.ts` | Movie/game nights: create, vote, attendance, close, tie-break, deadlines, reminders and past nights (paged) |
-| `client/src/nights.ts` | The Night rules on the client (groups, votes, ties, planned night, dates and form) |
+| `server/src/coverService.ts`, `coverRepository.ts` | Covers: a Root client has no direct internet access, so the server downloads each cover once (only from allowed image hosts), keeps a copy in SQLite and sends it in small batches. The client side is `client/src/covers.ts` |
+| `client/src/nights.ts` | The Party Night rules on the client (groups, votes, ties, planned night, dates and form) |
 | `client/src` | The React UI. It uses the Root color variables, so it follows the light and dark themes |
+| `client/src/design.css`, `icons.tsx` | The look: tokens built on the Root theme variables (so light and dark follow Root), the Geist font bundled in `assets/fonts`, and Phosphor icons. `styles.css` has the older base rules and `design.css` is loaded after it |
 | `client/src/i18n.tsx` | Every text of the UI in Portuguese and English. To change a sentence or add a language, start here |
 | `client/src/importer.ts` | The CSV import logic (parsing, matching, pacing under the Root request limit) |
 | `scripts/package.cjs` | Builds the upload package without leaking secrets (see below) |

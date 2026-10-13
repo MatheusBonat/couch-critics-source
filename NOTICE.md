@@ -19,13 +19,18 @@ Couch Critics talks to these services. Each one has its own terms, and every com
 - [IGDB](https://www.igdb.com) (through [Twitch](https://dev.twitch.tv)): games and covers.
 - [Open Library](https://openlibrary.org): books and covers.
 - [AniList](https://anilist.co): anime and covers.
-- [MusicBrainz](https://musicbrainz.org) and the [Cover Art Archive](https://coverartarchive.org): albums and covers.
+- [MusicBrainz](https://musicbrainz.org) and the [Cover Art Archive](https://coverartarchive.org): songs and covers.
 
 None of these services sponsors, endorses or certifies Couch Critics, and neither does Root.
 
 ## Root SDK
 
 The app is built with the Root SDK (`@rootsdk/*`), which is not distributed in this repository. Those packages are installed from npm and are subject to their own license.
+
+## Font and icons
+
+- **Geist** (variable font, `client/src/assets/fonts`) by Vercel, under the [SIL Open Font License 1.1](https://github.com/vercel/geist-font/blob/main/LICENSE.TXT).
+- **Phosphor Icons** (`@phosphor-icons/react`), under the MIT license.
 
 ## Other dependencies
 

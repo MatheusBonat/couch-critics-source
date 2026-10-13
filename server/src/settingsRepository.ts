@@ -9,7 +9,7 @@ export const settingKeys = {
   igdbClientId: "igdb_client_id",
   igdbClientSecret: "igdb_client_secret",
   claimedAdmin: "claimed_admin",
-  // Categorias opcionais ligadas pelo admin (livros, animes, álbuns), como "4,5".
+  // Categorias opcionais ligadas pelo admin (livros, animes, músicas), como "4,5".
   enabledKinds: "enabled_kinds",
 } as const;
 

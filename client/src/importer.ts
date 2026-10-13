@@ -126,6 +126,11 @@ const kindWords: Record<string, TitleKind> = {
   discos: TitleKind.ALBUM,
   music: TitleKind.ALBUM,
   musica: TitleKind.ALBUM,
+  musicas: TitleKind.ALBUM,
+  song: TitleKind.ALBUM,
+  songs: TitleKind.ALBUM,
+  single: TitleKind.ALBUM,
+  singles: TitleKind.ALBUM,
 };
 
 export function kindFromText(text: string): TitleKind | undefined {

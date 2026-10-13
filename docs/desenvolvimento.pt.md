@@ -4,7 +4,7 @@
 
 ## Fontes de dados (chaves de API)
 
-A busca usa o TMDB (filmes e séries) e o IGDB (jogos), e a nota do IMDb vem pelo OMDb. Livros, animes e álbuns usam a Open Library, a AniList e a MusicBrainz, que são gratuitas e **não precisam de chave**. As chaves são gratuitas e **cada comunidade usa as suas**. O IGDB é da Twitch: a chave é um par, o Client ID e o Client Secret de um aplicativo criado em dev.twitch.tv (a conta precisa de verificação em duas etapas):
+A busca usa o TMDB (filmes e séries) e o IGDB (jogos), e a nota do IMDb vem pelo OMDb. Livros, animes e músicas usam a Open Library, a AniList e a MusicBrainz, que são gratuitas e **não precisam de chave**. As chaves são gratuitas e **cada comunidade usa as suas**. O IGDB é da Twitch: a chave é um par, o Client ID e o Client Secret de um aplicativo criado em dev.twitch.tv (a conta precisa de verificação em duas etapas):
 
 1. Quem instala o app escolhe, na instalação, quem administra o Couch Critics (pessoas ou cargos). O dono da comunidade também é sempre admin. Se ninguém for escolhido, quem salvar a primeira chave vira o admin.
 2. Os admins veem o botão **Configurações** no topo e colam as chaves lá. Elas ficam no banco da comunidade e nunca voltam para a tela.
@@ -27,7 +27,7 @@ Episódios: ao adicionar uma série, o servidor já guarda as temporadas e a pri
 | `server/src` | Regras, validação e banco SQLite (`titleService.ts`, `titleRepository.ts`). |
 | `server/src/providers` | Conversa com o TMDB, o OMDb e o IGDB/Twitch (tempo limite, erros claros). |
 | `server/src/access.ts` | Quem é admin do app. |
-| `server/src/nightService.ts`, `nightRepository.ts` | A Noite: criar, votar, presença, fechar, desempatar, prazos, lembretes e noites passadas (em páginas). |
+| `server/src/nightService.ts`, `nightRepository.ts` | A Party Night: criar, votar, presença, fechar, desempatar, prazos, lembretes e noites passadas (em páginas). |
 | `client/src/nights.ts` | Regras da Noite na tela (grupos, votos, empate, noite marcada, datas e formulário), com testes. |
 | `client/src` | Tela em React. Usa as variáveis de cor do Root, então acompanha o tema claro/escuro. |
 | `client/src/i18n.tsx` | Todos os textos da tela, em português e inglês. Para mudar uma frase ou acrescentar um idioma, é aqui. |

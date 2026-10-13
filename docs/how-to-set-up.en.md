@@ -80,14 +80,14 @@ The **Save** button stays gray until the field has something in it. In the IGDB 
 
 ---
 
-## Optional: books, anime and albums
+## Optional: books, anime and songs
 
-Below the three key blocks there is a **Categories** block with three boxes: **Books (Open Library)**, **Anime (AniList)** and **Albums (MusicBrainz)**.
+Below the three key blocks there is a **Categories** block with three boxes: **Books (Open Library)**, **Anime (AniList)** and **Songs (MusicBrainz)**.
 
 - They are optional and need **no key at all**: the services are free and open.
 - Tick the ones your community wants. Each box saves right away, and a new tab shows up for everyone.
 - Untick a box to hide that tab. Titles that were already added are kept, and they come back if you tick the box again.
-- Anime can also be found by the original name (for example "Shingeki no Kyojin"). Not every book or album has a cover.
+- Anime can also be found by the original name (for example "Shingeki no Kyojin"). Not every book or song has a cover.
 
 ---
 
@@ -178,7 +178,7 @@ If a search says the source is not set up, go back to **Settings** and check tha
 
 **Do I need all three?** No. Each key turns on one feature, as shown in the table in section 2.
 
-**Do books, anime and albums need a key?** No. Just tick them in the **Categories** block.
+**Do books, anime and songs need a key?** No. Just tick them in the **Categories** block.
 
 **Can more than one admin set the keys?** Yes. Anyone in **App admins** can paste, replace or remove them.
 

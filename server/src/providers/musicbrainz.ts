@@ -56,12 +56,13 @@ function toItem(raw: Record<string, any>): CatalogItem | null {
   };
 }
 
-// Só álbuns e EPs (singles e compilações de ocasião deixariam a busca confusa).
+// Músicas únicas: os lançamentos do tipo "single" (uma música, com capa e artista), que é como as músicas de sucesso
+// aparecem na MusicBrainz. Faixas que nunca saíram como single não aparecem na busca (dá para adicionar à mão).
 async function search(query: string): Promise<CatalogItem[]> {
   const text = escapeLucene(query);
   if (text === "") return [];
 
-  const lucene = `${text} AND primarytype:(album OR ep)`;
+  const lucene = `${text} AND primarytype:single`;
   const body = await call(`/release-group/?query=${encodeURIComponent(lucene)}&fmt=json&limit=10`);
   const groups = Array.isArray(body["release-groups"]) ? body["release-groups"] : [];
   return groups.map(toItem).filter((item: CatalogItem | null): item is CatalogItem => item !== null);
@@ -71,7 +72,7 @@ async function details(id: string): Promise<CatalogItem> {
   if (!idPattern.test(id)) throw new ProviderError("not_found", "Invalid MusicBrainz id.");
 
   const item = toItem(await call(`/release-group/${id}?inc=artist-credits+genres&fmt=json`));
-  if (!item) throw new ProviderError("not_found", "MusicBrainz does not know this album.");
+  if (!item) throw new ProviderError("not_found", "MusicBrainz does not know this song.");
   return item;
 }
 

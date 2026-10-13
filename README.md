@@ -2,7 +2,7 @@
 
 # 🛋️ Couch Critics
 
-**Rate movies, series, games, books, anime and albums with your community, and plan the next movie night.**
+**Rate movies, series, games, books, anime and songs with your community, and plan the next movie night.**
 
 A free, open source [Root](https://www.rootapp.com) app. Everyone rates, everyone sees the scores, and the group decides what to watch or play next.
 
@@ -29,12 +29,12 @@ A free, open source [Root](https://www.rootapp.com) app. Everyone rates, everyon
 - Emoji reactions on other people's ratings, spoiler comments, and a score for each episode of a series
 
 **Find and add titles**
-- Search with covers, synopsis and genres, in English or Portuguese: movies and series (TMDB), games (IGDB) and, optionally, books (Open Library), anime (AniList) and albums (MusicBrainz), which need no API key
+- Search with covers, synopsis and genres, in English or Portuguese: movies and series (TMDB), games (IGDB) and, optionally, books (Open Library), anime (AniList) and songs (MusicBrainz), which need no API key
 - Import your old ratings from a spreadsheet (CSV) and export them
 
 **Decide what's next**
 - **To watch / play**: the group's list of everything someone wants to watch, play, read or listen to, with who wants each one. What you already finished leaves only your own list
-- **Night**: plan a movie or game night. Pick 2 to 8 titles, set a voting deadline, everyone votes (votes are public) and says if they are coming. The winner becomes a planned night, and Root notifications remind the ones who are going
+- **Party Night**: plan a movie or game night. Pick 2 to 8 titles, set a voting deadline, everyone votes (votes are public) and says if they are coming. The winner becomes a planned night, and Root notifications remind the ones who are going
 
 **Know your group**
 - Who thinks like you, the titles that split the group, your year in ratings, and a Hall of Fame and Shame
@@ -93,13 +93,13 @@ Every detail is in [docs/features.md](docs/features.md).
 
 <img src="docs/screenshots/05-search.png" alt="Searching for a movie with covers" width="100%"><br>
 <b>Search with covers</b><br>
-<sub>Movies, series, games, books, anime and albums, in English or Portuguese. Can't find it? Add it by hand.</sub>
+<sub>Movies, series, games, books, anime and songs, in English or Portuguese. Can't find it? Add it by hand.</sub>
 
 </td>
 <td width="33%" valign="top">
 
 <img src="docs/screenshots/06-books.png" alt="The books category" width="100%"><br>
-<b>Books, anime and albums</b><br>
+<b>Books, anime and songs</b><br>
 <sub>Optional categories that need no API key: the admin ticks them in Settings.</sub>
 
 </td>
@@ -127,7 +127,7 @@ Every detail is in [docs/features.md](docs/features.md).
 <td width="50%" valign="top">
 
 <img src="docs/screenshots/09-night-voting.png" alt="A night with public votes" width="100%"><br>
-<b>Night: vote and say if you're coming</b><br>
+<b>Party Night: vote and say if you're coming</b><br>
 <sub>Pick 2 to 8 titles, set a deadline, everyone votes (votes are public) and answers Going / Maybe / Not going.</sub>
 
 </td>
@@ -203,14 +203,14 @@ Every detail is in [docs/features.md](docs/features.md).
 
 ## 🆕 What's new
 
-**2.2.0**: the **To watch / play** list and **Night**, to decide together what to watch or play. **2.0.1**: the title list is paged, so it keeps working with hundreds of titles. **2.0.0**: books, anime and albums, and import from a spreadsheet.
+**2.3.0**: a new look, and every button takes you where it says (open panels close when you go to another category or view). **2.2.1**: covers show up inside Root, the **Songs** category, and the night is now **Party Night**. **2.2.0**: the **To watch / play** list and **Party Night**, to decide together what to watch or play. **2.0.1**: the title list is paged, so it keeps working with hundreds of titles. **2.0.0**: books, anime and songs, and import from a spreadsheet.
 
 See the [CHANGELOG](CHANGELOG.md) and the [releases](https://github.com/MatheusBonat/couch-critics-source/releases). Click **Watch → Custom → Releases** on this page to be told about each new version.
 
 ## 🚀 Set it up
 
 1. Install Couch Critics in your Root community and choose, during the installation, who the app admins are. The community owner is always an admin.
-2. Admins open **Settings** and paste the free keys they need (TMDB for movies and series, OMDb for IMDb ratings, IGDB/Twitch for games). Books, anime and albums need no key. Without any key the app still works with titles added by hand.
+2. Admins open **Settings** and paste the free keys they need (TMDB for movies and series, OMDb for IMDb ratings, IGDB/Twitch for games). Books, anime and songs need no key. Without any key the app still works with titles added by hand.
 3. Everyone adds titles, rates, and plans nights.
 
 Step-by-step guides: [how to get the API keys](docs/api-keys.en.md) and [how to set them up](docs/how-to-set-up.en.md). Each community uses its **own** free keys, and the app tells the admins when a service rejects one.
