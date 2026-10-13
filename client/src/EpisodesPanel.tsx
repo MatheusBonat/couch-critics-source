@@ -1,6 +1,6 @@
 import { useEffect, useId, useState } from "react";
 import { UserProfile } from "@rootsdk/client-app";
-import { Episode, EpisodeListResponse, SearchStatus, Title } from "@notas-app/gen-shared";
+import { Episode, EpisodeListResponse, SearchStatus, Title, TitleKind } from "@notas-app/gen-shared";
 import { titleServiceClient, TitleServiceClientEvent } from "@notas-app/gen-client";
 import { RatingForm } from "./RatingEditor";
 import { VoteList } from "./VoteList";
@@ -30,6 +30,8 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
   const [openEpisode, setOpenEpisode] = useState<string | null>(null);
+  // Anime tem uma lista só, sem temporadas: o episódio aparece como "E5" e, sem nome na fonte, como "Episódio 5".
+  const isAnime = title.kind === TitleKind.ANIME;
 
   const load = (wanted: number) => {
     setLoading(true);
@@ -138,15 +140,19 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
 
       {title.episodesRated > 0 && <p className="muted">{t.episodes.average(formatScore(title.episodesAvg, t.locale), title.episodesRated)}</p>}
 
-      {data && data.seasons.length > 0 && (
+      {data && data.seasons.length > (isAnime ? 1 : 0) && (
         <div className="field season-field">
-          <label htmlFor={`${id}-season`}>{t.episodes.seasonLabel}</label>
+          <label htmlFor={`${id}-season`}>{isAnime ? t.episodes.rangeLabel : t.episodes.seasonLabel}</label>
           <select id={`${id}-season`} className="input" value={season} disabled={loading} onChange={(event) => load(Number(event.target.value))}>
-            {data.seasons.map((item) => (
-              <option key={item.number} value={item.number}>
-                {t.episodes.seasonOption(item.number, item.episodeCount)}
-              </option>
-            ))}
+            {data.seasons.map((item, index) => {
+              // Anime: cada "temporada" é uma faixa de episódios; o início é a soma das faixas anteriores.
+              const from = data.seasons.slice(0, index).reduce((sum, previous) => sum + previous.episodeCount, 0) + 1;
+              return (
+                <option key={item.number} value={item.number}>
+                  {isAnime ? t.episodes.animeRange(from, from + item.episodeCount - 1) : t.episodes.seasonOption(item.number, item.episodeCount)}
+                </option>
+              );
+            })}
           </select>
         </div>
       )}
@@ -203,10 +209,10 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
                   aria-controls={bodyId}
                   onClick={() => setOpenEpisode(expanded ? null : key)}
                 >
-                  <span className="episode-code">{t.episodes.code(episode.season, episode.number)}</span>
+                  <span className="episode-code">{isAnime ? t.episodes.animeCode(episode.number) : t.episodes.code(episode.season, episode.number)}</span>
 
                   <span className="episode-main">
-                    <span className="episode-name">{episodeName(episode, lang)}</span>
+                    <span className="episode-name">{episodeName(episode, lang) || t.episodes.animeName(episode.number)}</span>
                     {aired && <span className="episode-meta">{aired}</span>}
                   </span>
 

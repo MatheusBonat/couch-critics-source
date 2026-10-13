@@ -26,14 +26,14 @@ Um app gratuito e de código aberto para o [Root](https://www.rootapp.com). Todo
 **Dar nota juntos**
 - Notas de 0 a 10 em meios pontos, com comentário opcional e botão de emojis. Duas notas especiais: **Peak** (conta 10) e **Fundo do poço** (conta 0)
 - Uma nota por membro por título. Cada linha mostra a média, a nota do IMDb e a nota dos primeiros membros
-- Reações com emoji nas notas dos outros, comentários com spoiler e nota por episódio nas séries
+- Reações com emoji nas notas dos outros, comentários com spoiler e nota por episódio nas séries e nos animes
 
 **Achar e adicionar títulos**
 - Busca com capa, sinopse e gêneros, em português ou inglês: filmes e séries (TMDB), jogos (IGDB) e, opcionalmente, livros (Open Library), animes (AniList) e músicas (MusicBrainz), que não precisam de chave de API
 - Importe suas notas antigas de uma planilha (CSV) e exporte as suas
 
 **Decidir o que vem a seguir**
-- **Para ver / jogar**: a lista da turma com tudo que alguém quer ver, jogar, ler ou ouvir, mostrando quem quer cada um. O que você já terminou sai só da sua lista
+- **Para ver / jogar**: a lista da turma com tudo que alguém quer ver, jogar, ler ou ouvir, mostrando quem quer cada um. O que você já terminou vai para o fim da sua lista, em "Concluídos"
 - **Party Night**: combine uma noite de filme ou jogo. Escolha de 2 a 8 títulos, defina o prazo da votação, todo mundo vota (os votos são abertos) e diz se vai. O vencedor vira uma noite marcada, e as notificações do Root lembram quem vai
 
 **Conhecer a turma**
@@ -121,7 +121,7 @@ Todos os detalhes estão em [docs/funcionalidades.pt.md](docs/funcionalidades.pt
 
 <img src="docs/screenshots/08-to-watch-list.png" alt="A lista Para ver / jogar da turma" width="100%"><br>
 <b>Para ver / jogar</b><br>
-<sub>O que cada um quer ver, jogar, ler ou ouvir, com quem quer cada título. Já fez? Ele sai só da sua lista.</sub>
+<sub>O que cada um quer ver, jogar, ler ou ouvir, com quem quer cada título. Já fez? Ele vai para o fim da sua lista.</sub>
 
 </td>
 <td width="50%" valign="top">

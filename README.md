@@ -26,14 +26,14 @@ A free, open source [Root](https://www.rootapp.com) app. Everyone rates, everyon
 **Rate together**
 - Scores from 0 to 10 in half points, with an optional comment and an emoji picker. Two special ratings: **Peak** (counts as 10) and **Rock Bottom** (counts as 0)
 - One score per member per title. Every row shows the average, the IMDb rating and the first members' scores
-- Emoji reactions on other people's ratings, spoiler comments, and a score for each episode of a series
+- Emoji reactions on other people's ratings, spoiler comments, and a score for each episode of a series or an anime
 
 **Find and add titles**
 - Search with covers, synopsis and genres, in English or Portuguese: movies and series (TMDB), games (IGDB) and, optionally, books (Open Library), anime (AniList) and songs (MusicBrainz), which need no API key
 - Import your old ratings from a spreadsheet (CSV) and export them
 
 **Decide what's next**
-- **To watch / play**: the group's list of everything someone wants to watch, play, read or listen to, with who wants each one. What you already finished leaves only your own list
+- **To watch / play**: the group's list of everything someone wants to watch, play, read or listen to, with who wants each one. What you already finished goes to the end of your own list, under Done
 - **Party Night**: plan a movie or game night. Pick 2 to 8 titles, set a voting deadline, everyone votes (votes are public) and says if they are coming. The winner becomes a planned night, and Root notifications remind the ones who are going
 
 **Know your group**
@@ -121,7 +121,7 @@ Every detail is in [docs/features.md](docs/features.md).
 
 <img src="docs/screenshots/08-to-watch-list.png" alt="The group's To watch / play list" width="100%"><br>
 <b>To watch / play</b><br>
-<sub>What everyone wants to watch, play, read or listen to, with who wants each one. Done it already? It leaves only your own list.</sub>
+<sub>What everyone wants to watch, play, read or listen to, with who wants each one. Done it already? It goes to the end of your own list.</sub>
 
 </td>
 <td width="50%" valign="top">

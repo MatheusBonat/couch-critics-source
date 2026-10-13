@@ -165,7 +165,8 @@ export function nightFormError(form: { start: number; votingEnd: number; titleId
 // depois os outros, do mais novo ao mais antigo. A busca acha por nome, com ou sem acento. No máximo 30 resultados.
 export function candidateTitles(titles: Title[], allowedKinds: TitleKind[], userId: string, query: string, limit = 30): Title[] {
   const needle = searchKey(query);
-  const wanted = buildWantList(titles, allowedKinds, userId).map((item) => item.title);
+  // O que a pessoa já viu ou jogou fica entre os "outros" (continua podendo ser escolhido, mas não vem na frente).
+  const wanted = buildWantList(titles, allowedKinds, userId).filter((item) => !item.done).map((item) => item.title);
   const wantedIds = new Set(wanted.map((title) => title.id));
   const others = titles.filter((title) => allowedKinds.includes(title.kind) && !wantedIds.has(title.id)).sort((a, b) => b.id - a.id);
   return [...wanted, ...others].filter((title) => titleMatches(title, needle)).slice(0, limit);

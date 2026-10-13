@@ -346,10 +346,13 @@ export interface WantItem {
   // Quem marcou "quero ver / jogar / ler / ouvir" neste título, na ordem em que marcou.
   wanters: string[];
   mine: boolean;
+  // Quem está usando já viu, jogou, leu ou ouviu: o título vai para o fim da lista dessa pessoa (os outros não veem diferença).
+  done: boolean;
 }
 
-// A lista da turma: tudo que pelo menos uma pessoa quer ver, jogar, ler ou ouvir, nas categorias que aparecem,
-// menos o que quem está usando já viu ou jogou (já vi / joguei). Quem tem mais gente querendo vem primeiro; empatou, vem o mais novo.
+// A lista da turma: tudo que pelo menos uma pessoa quer ver, jogar, ler ou ouvir, nas categorias que aparecem.
+// Quem tem mais gente querendo vem primeiro; empatou, vem o mais novo. O que quem está usando já viu ou jogou
+// (já vi / joguei) não some: vai para o fim da lista dessa pessoa, na mesma ordem.
 export function buildWantList(titles: Title[], allowedKinds: TitleKind[], userId: string, options: { kind?: TitleKind | null; onlyMine?: boolean } = {}): WantItem[] {
   const items: WantItem[] = [];
 
@@ -358,23 +361,23 @@ export function buildWantList(titles: Title[], allowedKinds: TitleKind[], userId
     if (options.kind != null && title.kind !== options.kind) continue;
 
     const wanters = title.statuses.filter((entry) => entry.status === WatchStatus.WANT).map((entry) => entry.userId);
-    if (wanters.length === 0) continue;
-
-    // Quem já viu ou jogou marca "já vi" e o título some só da lista dessa pessoa; os outros continuam vendo.
-    if (watchStatusOf(title, userId) === WatchStatus.DONE) continue;
+    const done = watchStatusOf(title, userId) === WatchStatus.DONE;
+    if (wanters.length === 0 && !done) continue;
 
     const mine = wanters.includes(userId);
     if (options.onlyMine && !mine) continue;
-    items.push({ title, wanters, mine });
+    items.push({ title, wanters, mine, done });
   }
 
-  return items.sort((a, b) => b.wanters.length - a.wanters.length || b.title.id - a.title.id);
+  return items.sort((a, b) => Number(a.done) - Number(b.done) || b.wanters.length - a.wanters.length || b.title.id - a.title.id);
 }
 
-// Quantos títulos da lista da turma há em cada categoria (para os contadores das categorias).
+// Quantos títulos ainda faltam na lista da turma em cada categoria (para os contadores das categorias; os já vistos não contam).
 export function countWanted(titles: Title[], allowedKinds: TitleKind[], userId: string): Map<TitleKind, number> {
   const counts = new Map<TitleKind, number>();
-  for (const item of buildWantList(titles, allowedKinds, userId)) counts.set(item.title.kind, (counts.get(item.title.kind) ?? 0) + 1);
+  for (const item of buildWantList(titles, allowedKinds, userId)) {
+    if (!item.done) counts.set(item.title.kind, (counts.get(item.title.kind) ?? 0) + 1);
+  }
   return counts;
 }
 

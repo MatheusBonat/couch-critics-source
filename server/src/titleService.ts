@@ -55,7 +55,7 @@ import { Lang, TmdbKind, mergeSearchResults, tmdbCheck, tmdbDetails, tmdbSearch,
 import { omdbCheck, omdbRating, omdbSeasonRatings } from "./providers/omdb";
 import { Catalog, CatalogItem } from "./providers/catalog";
 import { openLibrary } from "./providers/openlibrary";
-import { aniList } from "./providers/anilist";
+import { aniList, aniListEpisodes } from "./providers/anilist";
 import { musicBrainz } from "./providers/musicbrainz";
 import { IgdbCredentials, forgetIgdbTokens, igdbCheck, igdbDetails, igdbSearch } from "./providers/igdb";
 
@@ -79,6 +79,10 @@ export const tuning = {
   listPageBytes: 180_000,
   // Nomes, datas e notas dos episódios são atualizados depois de uma semana (entram os episódios novos).
   episodeMaxAgeMs: imdbMaxAgeMs,
+  // A lista de episódios de um anime (a AniList não tem datas nem notas) é conferida de novo depois de 12 horas.
+  animeEpisodeMaxAgeMs: 12 * 60 * 60 * 1000,
+  // Anime longo (centenas de episódios) é dividido em "temporadas" de 50 episódios, para a resposta não passar de 256 KiB.
+  animeEpisodesPerPage: 50,
   // Se algum episódio ainda não tem nota no IMDb, tenta de novo depois de 6 horas.
   imdbRetryMs: 6 * 60 * 60 * 1000,
   // Depois de uma falha do OMDb (limite do dia, fora do ar), espera antes de tentar de novo.
@@ -246,6 +250,7 @@ const keyFormats = {
 export class TitleService extends TitleServiceBase {
   private refreshing = false;
   private loading = new Map<string, Promise<void>>();
+  private animeLoading = new Map<string, Promise<CachedSeason[]>>();
   private imdbAttempts = new Map<string, number>();
   private background = new Set<Promise<void>>();
   private fillingDetails = false;
@@ -732,6 +737,11 @@ export class TitleService extends TitleServiceBase {
     const title = await requireTitle(request.titleId);
     const unavailable = (status: SearchStatus): EpisodeListResponse => ({ status, seasons: [], season: 0, episodes: [] });
 
+    // Animes da AniList têm uma lista só, de episódios numerados.
+    if (title.kind === TitleKind.ANIME && title.source === "anilist" && title.externalId !== "") {
+      return this.listAnimeEpisodes(title, request.season, unavailable);
+    }
+
     // Só séries que vieram do TMDB têm episódios. Séries adicionadas à mão não têm de onde tirar a lista.
     if (title.kind !== TitleKind.SERIES || title.source !== "tmdb" || title.externalId === "") {
       return unavailable(SearchStatus.NOT_AVAILABLE);
@@ -758,6 +768,64 @@ export class TitleService extends TitleServiceBase {
       if (!(error instanceof ProviderError)) throw error;
       if (error.code === "invalid_key") flagKeyProblem("tmdb");
       return unavailable(searchStatuses[error.code]);
+    }
+  }
+
+  private async listAnimeEpisodes(title: Title, requested: number, unavailable: (status: SearchStatus) => EpisodeListResponse): Promise<EpisodeListResponse> {
+    try {
+      const seasons = await this.ensureAnimeEpisodes(title);
+      if (seasons.length === 0) return unavailable(SearchStatus.NOT_AVAILABLE);
+
+      const season = seasons.find((item) => item.number === requested)?.number ?? seasons[0].number;
+      return {
+        status: SearchStatus.OK,
+        seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount })),
+        season,
+        episodes: await episodeRepository.listEpisodes(title.id, season),
+      };
+    } catch (error) {
+      if (!(error instanceof ProviderError)) throw error;
+      return unavailable(searchStatuses[error.code]);
+    }
+  }
+
+  // Os episódios de um anime ficam em "temporadas" de 50 (o número do episódio continua o verdadeiro, 1 a N).
+  // Se a AniList falhar, vale a lista que já estava guardada.
+  private ensureAnimeEpisodes(title: Title): Promise<CachedSeason[]> {
+    const key = `anime:${title.id}`;
+    const running = this.animeLoading.get(key);
+    if (running) return running;
+
+    const job = this.loadAnimeEpisodes(title).finally(() => this.animeLoading.delete(key));
+    this.animeLoading.set(key, job);
+    return job;
+  }
+
+  private async loadAnimeEpisodes(title: Title): Promise<CachedSeason[]> {
+    const cached = await episodeRepository.seasonsOf(title.id);
+    const now = Date.now();
+    if (cached.length > 0 && cached.every((season) => season.episodesFetchedAt > now - tuning.animeEpisodeMaxAgeMs)) return cached;
+
+    try {
+      const { count, names } = await aniListEpisodes(title.externalId);
+      const size = tuning.animeEpisodesPerPage;
+      const pages: { number: number; episodeCount: number }[] = [];
+      for (let page = 1; (page - 1) * size < count; page++) {
+        const first = (page - 1) * size + 1;
+        const last = Math.min(count, page * size);
+        const episodes: EpisodeData[] = Array.from({ length: last - first + 1 }, (_unused, index) => {
+          const name = names.get(first + index) ?? "";
+          return { number: first + index, nameEn: name, namePt: name, airDate: "", tmdbRating: 0, tmdbVotes: 0 };
+        });
+        await episodeRepository.saveEpisodes(title.id, page, episodes, now);
+        pages.push({ number: page, episodeCount: episodes.length });
+      }
+      // Anime no ar ganha episódios: a contagem de cada página guardada acompanha.
+      await episodeRepository.saveSeasons(title.id, pages, now);
+      return await episodeRepository.seasonsOf(title.id);
+    } catch (error) {
+      if (error instanceof ProviderError && cached.length > 0) return cached;
+      throw error;
     }
   }
 

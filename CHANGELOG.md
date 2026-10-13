@@ -2,6 +2,23 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.4.0] - 2026-10-13
+
+### Added
+- **Anime by episode**: anime can be rated episode by episode, like series. The episode list comes from AniList (the count of episodes that have aired and, when AniList has it, the name). Long anime are split into groups of 50 episodes so every answer stays under Root's 256 KiB limit
+- **Songs by artist**: write the song name and put the artist in quotes, like `Envolver "Anitta"`. Writing only an artist (or only a song) also works, and the search tip shows in the Songs form
+
+### Changed
+- In **To watch / play**, a title you marked as watched, played, read or listened to no longer disappears: it goes to the end of your own list, under **Done**, dimmed (everyone else sees it where it was, and the counters count only what is left)
+- Switching category clears the list search, so what you typed in Songs does not hide your Anime
+- Night candidates still put the titles you have not seen first
+
+## [2.3.1] - 2026-10-13
+
+### Changed
+- The search box on the list only filters what is already added, and it was not clear how to search the catalogs. Now **Enter** searches what you typed (TMDB, IGDB, Open Library, AniList, MusicBrainz) to add it, the "nothing in the list" screen has a main button, "Search “…” to add", and the same link shows under the results
+- The "Only the ones I want" button was removed from **To watch / play**
+
 ## [2.3.0] - 2026-10-13
 
 ### Changed

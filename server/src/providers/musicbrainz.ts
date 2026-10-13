@@ -56,13 +56,33 @@ function toItem(raw: Record<string, any>): CatalogItem | null {
   };
 }
 
+// O que vem entre aspas é o artista e o resto é o nome da música: Envolver "Anitta". Sem aspas, o texto vale para o nome da
+// música ou para o artista, então digitar só o nome do artista lista as músicas dele.
+function splitQuery(query: string): { title: string; artists: string[] } {
+  const artists: string[] = [];
+  const title = query.replace(/["“”„«»]([^"“”„«»]{1,100})["“”„«»]/g, (_match, name: string) => {
+    if (artists.length < 3) artists.push(name);
+    return " ";
+  });
+  return { title, artists };
+}
+
 // Músicas únicas: os lançamentos do tipo "single" (uma música, com capa e artista), que é como as músicas de sucesso
 // aparecem na MusicBrainz. Faixas que nunca saíram como single não aparecem na busca (dá para adicionar à mão).
 async function search(query: string): Promise<CatalogItem[]> {
-  const text = escapeLucene(query);
-  if (text === "") return [];
+  const { title, artists } = splitQuery(query);
+  const text = escapeLucene(title);
+  const names = artists.map(escapeLucene).filter((name) => name !== "");
 
-  const lucene = `${text} AND primarytype:single`;
+  let lucene: string;
+  if (names.length > 0) {
+    lucene = [text !== "" ? `releasegroup:(${text})` : "", ...names.map((name) => `artist:"${name}"`), "primarytype:single"].filter(Boolean).join(" AND ");
+  } else if (text !== "") {
+    lucene = `(releasegroup:(${text}) OR artist:(${text})) AND primarytype:single`;
+  } else {
+    return [];
+  }
+
   const body = await call(`/release-group/?query=${encodeURIComponent(lucene)}&fmt=json&limit=10`);
   const groups = Array.isArray(body["release-groups"]) ? body["release-groups"] : [];
   return groups.map(toItem).filter((item: CatalogItem | null): item is CatalogItem => item !== null);

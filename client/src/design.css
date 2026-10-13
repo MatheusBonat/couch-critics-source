@@ -758,6 +758,36 @@ select.input {
   align-self: center;
 }
 
+/* ---------- lista da turma: o que eu já vi vai para o fim ---------- */
+.want-done {
+  display: grid;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.want-done-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--nt-muted);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.title-done .title-head {
+  opacity: 0.62;
+  transition: opacity var(--dur) var(--ease);
+}
+
+.title-done .title-head:hover,
+.title-done .title-head:focus-visible,
+.title-done .title-head[aria-expanded="true"] {
+  opacity: 1;
+}
+
 /* ---------- movimento ---------- */
 @keyframes rise {
   from {

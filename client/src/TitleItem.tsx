@@ -30,9 +30,11 @@ interface Props {
   scheduled?: Night;
   // O estado "quero ver / vendo / já vi" só aparece na lista "Para ver / jogar", não na tela de notas.
   showWatch?: boolean;
+  // Na lista "Para ver / jogar": quem está usando já viu, jogou, leu ou ouviu este título (a linha fica esmaecida, no fim da lista).
+  done?: boolean;
 }
 
-export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled, showWatch = false }: Props) {
+export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled, showWatch = false, done = false }: Props) {
   const { t, lang } = useI18n();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -45,7 +47,8 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
   const votes = [...title.ratings].sort((a, b) => ratingRank(b) - ratingRank(a));
   const bodyId = `title-body-${title.id}`;
   const creator = title.createdBy === me ? t.you : displayName(profiles, title.createdBy, t.member);
-  const hasEpisodes = title.kind === TitleKind.SERIES && title.source === "tmdb";
+  // Episódios: séries do TMDB e animes da AniList.
+  const hasEpisodes = (title.kind === TitleKind.SERIES && title.source === "tmdb") || (title.kind === TitleKind.ANIME && title.source === "anilist");
 
   // Quem adicionou o título ou um admin pode editar (só os feitos à mão) e remover.
   const canManage = title.createdBy === me || isAdmin;
@@ -111,7 +114,7 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
   };
 
   return (
-    <li className="title" id={`title-${title.id}`}>
+    <li className={done ? "title title-done" : "title"} id={`title-${title.id}`}>
       <button type="button" className="title-head" aria-expanded={open} aria-controls={bodyId} onClick={onToggle}>
         <span className="score-col">
           <span

@@ -75,4 +75,41 @@ async function details(id: string): Promise<CatalogItem> {
   return item;
 }
 
+// Episódios de um anime: a AniList só sabe a quantidade e, às vezes, o nome (nos "streamingEpisodes", como "Episode 3 - Nome").
+// Tudo vem de fora, então cada campo é conferido e limitado antes de ser usado.
+export interface AnimeEpisodes {
+  count: number;
+  names: Map<number, string>;
+}
+
+const maxAnimeEpisodes = 2000;
+const maxAnimeEpisodeName = 120;
+const episodeTitle = /^(?:Episode|Episódio|Ep\.?)\s{0,3}(\d{1,4})\s{0,3}[-–—:.]\s{0,3}(.{1,200})/i;
+
+export async function aniListEpisodes(id: string): Promise<AnimeEpisodes> {
+  if (!/^\d{1,9}$/.test(id)) throw new ProviderError("not_found", "Invalid AniList id.");
+
+  const data = await call(`query ($id: Int) { Media(id: $id, type: ANIME) { episodes nextAiringEpisode { episode } streamingEpisodes { title } } }`, { id: Number(id) });
+  const media = data.data?.Media;
+  if (!media || typeof media !== "object") throw new ProviderError("not_found", "AniList does not know this anime.");
+
+  const names = new Map<number, string>();
+  const streaming = Array.isArray(media.streamingEpisodes) ? media.streamingEpisodes.slice(0, 500) : [];
+  for (const entry of streaming) {
+    const match = episodeTitle.exec(textOf(entry?.title).trim());
+    if (!match) continue;
+    const number = Number(match[1]);
+    const name = match[2].trim().slice(0, maxAnimeEpisodeName);
+    if (number >= 1 && number <= maxAnimeEpisodes && name !== "" && !names.has(number)) names.set(number, name);
+  }
+
+  // Anime no ar: só os episódios que já saíram. Terminado: o total. Sem total: o maior número que a AniList nomeou.
+  const total = typeof media.episodes === "number" && media.episodes > 0 ? Math.floor(media.episodes) : 0;
+  const next = media.nextAiringEpisode?.episode;
+  const highestNamed = Math.max(0, ...names.keys());
+  const count = typeof next === "number" && next >= 1 ? Math.floor(next) - 1 : total > 0 ? total : highestNamed;
+
+  return { count: Math.max(0, Math.min(maxAnimeEpisodes, count)), names };
+}
+
 export const aniList: Catalog = { source: "anilist", idPattern: /^\d{1,9}$/, search, details };

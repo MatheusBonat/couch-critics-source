@@ -123,6 +123,8 @@ export function SearchPanel({ kind, initialQuery, canConfigure, onCreated, onCan
         />
       </div>
 
+      {kind.kind === TitleKind.ALBUM && <p className="muted search-tip">{t.search.songTip}</p>}
+
       <div className="search-status" aria-live="polite">
         {phase === "loading" && <p className="muted">{t.search.searching}</p>}
 

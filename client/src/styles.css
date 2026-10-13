@@ -1961,21 +1961,6 @@ textarea.input {
   }
 }
 
-.want-gone {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px 16px;
-  margin: 0;
-  padding: 10px 14px;
-  border: 1px solid var(--nt-border);
-  border-radius: 12px;
-  background: var(--nt-bg-2);
-  color: var(--nt-text-2);
-  font-size: 14px;
-}
-
 /* Versão 2.2: Noite de filme/jogo */
 .nights {
   display: grid;

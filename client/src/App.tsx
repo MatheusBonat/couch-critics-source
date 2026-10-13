@@ -401,6 +401,8 @@ const App = () => {
 
   const selectKind = (index: number) => {
     setKindIndex(index);
+    // A busca da lista é de cada categoria: o que foi digitado em "Músicas" não deve esconder os "Animes".
+    setQuery("");
     leave();
   };
 
@@ -627,7 +629,12 @@ const App = () => {
               type="search"
               placeholder={t.searchIn(kindText.plural)}
               value={query}
+              title={t.searchHint}
               onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                // A caixa filtra o que já está na lista; Enter leva o mesmo texto à busca nos catálogos, para adicionar.
+                if (event.key === "Enter" && query.trim().length > 0) startAdding(query.trim());
+              }}
             />
           </div>
 
@@ -685,7 +692,7 @@ const App = () => {
             ) : hasFilter ? (
               <>
                 <p>{t.nothingFound(query.trim())}</p>
-                <button type="button" className="button-outline" onClick={() => startAdding(query.trim())}>
+                <button type="button" className="button-primary" onClick={() => startAdding(query.trim())}>
                   {t.addQuery(query.trim())}
                 </button>
               </>
@@ -717,6 +724,15 @@ const App = () => {
                 />
               ))}
             </ul>
+
+            {hasFilter && (
+              <div className="show-more">
+                <button type="button" className="button-quiet" onClick={() => startAdding(query.trim())}>
+                  <IconSearch />
+                  {t.addQuery(query.trim())}
+                </button>
+              </div>
+            )}
 
             {visible.length > limit && (
               <div className="show-more">

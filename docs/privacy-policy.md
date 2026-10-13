@@ -22,7 +22,7 @@ Only the community where the app is installed, and the Root platform that hosts 
 
 ## Third-party services
 
-To search for titles, the app's server sends the search text and title IDs to TMDB, OMDb and IGDB (through Twitch). These services have their own privacy policies. If the admins turn on the optional categories, the server also sends the search text to Open Library (books), AniList (anime) and MusicBrainz (songs). Covers are downloaded by the app's server from the image servers of these services and kept in the community's database, so members' devices get them from the app and do not contact the image servers. If the server cannot get a cover, a member's device may try the image server directly, which can then see that device's IP address.
+To search for titles, the app's server sends the search text and title IDs to TMDB, OMDb and IGDB (through Twitch). These services have their own privacy policies. If the admins turn on the optional categories, the server also sends the search text and title IDs to Open Library (books), AniList (anime, including the episode list) and MusicBrainz (songs). Covers are downloaded by the app's server from the image servers of these services and kept in the community's database, so members' devices get them from the app and do not contact the image servers. If the server cannot get a cover, a member's device may try the image server directly, which can then see that device's IP address.
 
 When a member imports a spreadsheet of ratings, the file is read on that member's own device; only the ratings the member confirms are sent to the app.
 
@@ -74,7 +74,7 @@ Somente a comunidade onde o app está instalado e a plataforma Root, que o hospe
 
 ## Serviços de terceiros
 
-Para buscar títulos, o servidor do app envia o texto da busca e os IDs dos títulos ao TMDB, ao OMDb e ao IGDB (pela Twitch). Esses serviços têm as próprias políticas de privacidade. Se os admins ligarem as categorias opcionais, o servidor também envia o texto da busca à Open Library (livros), à AniList (animes) e à MusicBrainz (músicas). As capas são baixadas pelo servidor do app, nos servidores de imagens desses serviços, e guardadas no banco de dados da comunidade; assim, os aparelhos dos membros recebem as capas pelo app e não acessam os servidores de imagens. Se o servidor não conseguir uma capa, o aparelho do membro pode tentar o servidor de imagens diretamente, que então pode ver o endereço IP desse aparelho.
+Para buscar títulos, o servidor do app envia o texto da busca e os IDs dos títulos ao TMDB, ao OMDb e ao IGDB (pela Twitch). Esses serviços têm as próprias políticas de privacidade. Se os admins ligarem as categorias opcionais, o servidor também envia o texto da busca e os IDs dos títulos à Open Library (livros), à AniList (animes, inclusive a lista de episódios) e à MusicBrainz (músicas). As capas são baixadas pelo servidor do app, nos servidores de imagens desses serviços, e guardadas no banco de dados da comunidade; assim, os aparelhos dos membros recebem as capas pelo app e não acessam os servidores de imagens. Se o servidor não conseguir uma capa, o aparelho do membro pode tentar o servidor de imagens diretamente, que então pode ver o endereço IP desse aparelho.
 
 Quando um membro importa uma planilha de notas, o arquivo é lido no próprio aparelho dele; só as notas que ele confirmar são enviadas ao app.
 
