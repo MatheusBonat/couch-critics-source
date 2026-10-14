@@ -2,6 +2,12 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.4.3] - 2026-10-14
+
+### Fixed
+- Contrast (WCAG AA): the main buttons and the "open vote" badge had 4.08:1 in the dark Root theme; the background is now a slightly darker shade of the brand color (5.6:1). The titles under **Done** were dimmed as a whole, which left the secondary text at 2.6:1 in the light theme; now only the cover, the ring and the chips fade and the text keeps a passing contrast
+- When Root refuses a notification for a Party Night, the reason is now written once (every few hours) to the app log that admins see, instead of failing silently
+
 ## [2.4.2] - 2026-10-13
 
 ### Fixed
