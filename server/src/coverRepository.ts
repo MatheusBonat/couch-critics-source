@@ -19,6 +19,19 @@ export class CoverRepository {
   public async put(path: string, mime: string, data: Buffer, now: number): Promise<void> {
     await knex(coversTable).insert({ path, mime, data, fetched_at: now }).onConflict("path").merge();
   }
+
+  // O teto vale só para as capas "soltas" (de resultados de busca, que nenhum título da comunidade usa): passou de maxRows,
+  // saem as mais antigas. A capa de um título nunca é apagada por aqui, senão uma comunidade grande rebaixaria as mesmas
+  // capas o tempo todo (e a lista voltaria a mostrar a inicial em vez da capa).
+  public async trim(maxRows: number): Promise<void> {
+    const loose = () => knex(coversTable).whereNotIn("path", knex("titles").select("poster_en")).whereNotIn("path", knex("titles").select("poster_pt"));
+    const [{ n }] = await loose().count({ n: "*" });
+    const over = Number(n) - maxRows;
+    if (over <= 0) return;
+
+    const oldest = await loose().select("path").orderBy("fetched_at", "asc").limit(over);
+    await knex(coversTable).whereIn("path", oldest.map((row) => row.path)).delete();
+  }
 }
 
 export async function initializeCovers(): Promise<void> {

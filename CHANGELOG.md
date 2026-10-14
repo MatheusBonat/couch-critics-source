@@ -2,6 +2,14 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.5.1] - 2026-10-14
+
+### Fixed
+- In the title search ("Add movie", "Add game"...), the cover touched the title because the cover column was narrower than the cover. There is now space between them, on wide and narrow screens.
+
+### Source code
+- This repository now has the full source of versions 2.4.2 to 2.5.1. The commits for 2.4.2, 2.4.3, 2.4.4 and 2.5.0 only carried the changelog and the version number, so the code of those versions (cover downloads, episode paging, contrast fixes, Party Night tabs) was missing here.
+
 ## [2.5.0] - 2026-10-14
 
 ### Changed

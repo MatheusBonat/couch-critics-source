@@ -33,11 +33,13 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
   // Anime tem uma lista só, sem temporadas: o episódio aparece como "E5" e, sem nome na fonte, como "Episódio 5".
   const isAnime = title.kind === TitleKind.ANIME;
 
+  const [loadingMore, setLoadingMore] = useState(false);
+
   const load = (wanted: number) => {
     setLoading(true);
     setFailed(false);
     titleServiceClient
-      .listEpisodes({ titleId: title.id, season: wanted })
+      .listEpisodes({ titleId: title.id, season: wanted, afterNumber: 0 })
       .then((response) => {
         setData(response);
         setSeason(response.season);
@@ -45,6 +47,23 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
       })
       .catch(() => setFailed(true))
       .finally(() => setLoading(false));
+  };
+
+  // Temporada com muitas notas vem em páginas (o Root limita cada mensagem a 256 KiB): "Mostrar mais" pede a próxima.
+  const loadMore = () => {
+    if (!data || !data.hasMore || loadingMore) return;
+    setLoadingMore(true);
+    titleServiceClient
+      .listEpisodes({ titleId: title.id, season: data.season, afterNumber: data.nextAfterNumber })
+      .then((response) => {
+        setData((current) => {
+          if (!current || current.season !== response.season) return current;
+          const known = new Set(current.episodes.map((episode) => episode.number));
+          return { ...current, episodes: [...current.episodes, ...response.episodes.filter((episode) => !known.has(episode.number))], hasMore: response.hasMore, nextAfterNumber: response.nextAfterNumber };
+        });
+      })
+      .catch((error) => onError(errorMessage(error, t)))
+      .finally(() => setLoadingMore(false));
   };
 
   useEffect(() => {
@@ -279,6 +298,14 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
             );
           })}
         </ul>
+      )}
+
+      {!loading && !failed && data && data.hasMore && (
+        <div className="show-more">
+          <button type="button" className="button-outline" disabled={loadingMore} onClick={loadMore}>
+            {t.episodes.showMore}
+          </button>
+        </div>
       )}
     </section>
   );

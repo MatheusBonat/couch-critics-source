@@ -77,12 +77,17 @@ export function postJson(
   return requestJson(url, { method: "POST", headers, body }, timeoutMs);
 }
 
+type BytesReader = { read(): Promise<{ done: boolean; value?: Uint8Array }>; cancel(): Promise<void> };
 type BytesResponse = {
   status: number;
   headers: { get(name: string): string | null };
+  body?: { getReader(): BytesReader } | null;
   arrayBuffer(): Promise<ArrayBuffer>;
 };
-type BytesFetch = (url: string, init: { headers: Record<string, string>; signal: AbortSignal }) => Promise<BytesResponse>;
+type BytesFetch = (
+  url: string,
+  init: { headers: Record<string, string>; signal: AbortSignal; redirect?: "manual" | "follow" },
+) => Promise<BytesResponse>;
 
 let bytesImpl: BytesFetch = (url, init) => fetch(url, init) as unknown as Promise<BytesResponse>;
 
@@ -97,22 +102,78 @@ export interface BytesResult {
   data: Buffer;
 }
 
-// Baixa um arquivo pequeno (as capas). Devolve null se o serviço não respondeu a tempo.
+const maxRedirects = 3;
+
+// Redirecionamento só para https, sem porta nem credencial, e só para o mesmo host ou para o Internet Archive (a Cover Art
+// Archive entrega as imagens por lá). Qualquer outro destino é recusado, mesmo vindo de um serviço de confiança.
+function redirectTarget(from: string, location: string | null): string | null {
+  if (!location) return null;
+  let next: URL;
+  try {
+    next = new URL(location, from);
+  } catch {
+    return null;
+  }
+  const host = next.hostname.toLowerCase();
+  const sameHost = host === new URL(from).hostname.toLowerCase();
+  const archive = host === "archive.org" || host.endsWith(".archive.org");
+  const plain = next.protocol === "https:" && next.port === "" && next.username === "" && next.password === "";
+  return plain && (sameHost || archive) ? next.toString() : null;
+}
+
+// Lê o corpo no máximo até maxBytes (para de baixar ao passar disso, mesmo sem Content-Length). null = grande demais.
+async function readBounded(response: BytesResponse, maxBytes: number): Promise<Buffer | null> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    const whole = Buffer.from(await response.arrayBuffer());
+    return whole.length > maxBytes ? null : whole;
+  }
+
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.length;
+    if (total > maxBytes) {
+      await reader.cancel().catch(() => undefined);
+      return null;
+    }
+    chunks.push(Buffer.from(value));
+  }
+  return Buffer.concat(chunks);
+}
+
+// Baixa um arquivo pequeno (as capas). Devolve null se o serviço não respondeu a tempo. Redirecionamentos são seguidos à mão
+// (até 3, só para destinos permitidos; outro destino devolve status 403) e o corpo nunca passa de maxBytes (status 413).
 export async function getBytes(url: string, maxBytes: number, timeoutMs = 7000): Promise<BytesResult | null> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const empty = (status: number, mime = ""): BytesResult => ({ status, mime, data: Buffer.alloc(0) });
 
   try {
-    const response = await bytesImpl(url, { headers: { Accept: "image/*" }, signal: controller.signal });
-    const mime = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
-    if (response.status !== 200) return { status: response.status, mime, data: Buffer.alloc(0) };
+    let current = url;
+    for (let hop = 0; ; hop++) {
+      const response = await bytesImpl(current, { headers: { Accept: "image/*" }, signal: controller.signal, redirect: "manual" });
 
-    // Arquivo grande demais: não vale baixar (status 413, para quem chama tratar como "sem capa").
-    const declared = Number(response.headers.get("content-length") ?? 0);
-    if (declared > maxBytes) return { status: 413, mime, data: Buffer.alloc(0) };
+      if ([301, 302, 303, 307, 308].includes(response.status)) {
+        const next = hop < maxRedirects ? redirectTarget(current, response.headers.get("location")) : null;
+        if (!next) return empty(403);
+        current = next;
+        continue;
+      }
 
-    const data = Buffer.from(await response.arrayBuffer());
-    return data.length > maxBytes ? { status: 413, mime, data: Buffer.alloc(0) } : { status: 200, mime, data };
+      const mime = (response.headers.get("content-type") ?? "").split(";")[0].trim().toLowerCase();
+      if (response.status !== 200) return empty(response.status, mime);
+
+      // Arquivo grande demais: não vale baixar (status 413, para quem chama tratar como "sem capa").
+      const declared = Number(response.headers.get("content-length") ?? 0);
+      if (declared > maxBytes) return empty(413, mime);
+
+      const data = await readBounded(response, maxBytes);
+      return data === null ? empty(413, mime) : { status: 200, mime, data };
+    }
   } catch {
     return null;
   } finally {

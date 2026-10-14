@@ -161,13 +161,38 @@ export function nightFormError(form: { start: number; votingEnd: number; titleId
   return null;
 }
 
+// Na hora de montar a noite, os títulos aparecem separados por grupos: filmes e séries (e animes, que se assistem do mesmo jeito),
+// jogos, livros e músicas. Cada grupo é uma aba; o que foi escolhido fica guardado ao trocar de aba.
+export type NightPickKey = "screen" | "games" | "books" | "music";
+
+export interface NightPickGroup {
+  key: NightPickKey;
+  kinds: TitleKind[];
+}
+
+const allPickGroups: NightPickGroup[] = [
+  { key: "screen", kinds: [TitleKind.MOVIE, TitleKind.SERIES, TitleKind.ANIME] },
+  { key: "games", kinds: [TitleKind.GAME] },
+  { key: "books", kinds: [TitleKind.BOOK] },
+  { key: "music", kinds: [TitleKind.ALBUM] },
+];
+
+// Os grupos que têm pelo menos uma categoria ligada na comunidade, na ordem de cima (filmes e séries primeiro).
+export function pickGroups(allowedKinds: TitleKind[]): NightPickGroup[] {
+  return allPickGroups
+    .map((group) => ({ ...group, kinds: group.kinds.filter((kind) => allowedKinds.includes(kind)) }))
+    .filter((group) => group.kinds.length > 0);
+}
+
 // Títulos que dá para pôr numa noite: primeiro os da lista "Para ver / jogar" (quem tem mais gente querendo vem antes),
 // depois os outros, do mais novo ao mais antigo. A busca acha por nome, com ou sem acento. No máximo 30 resultados.
-export function candidateTitles(titles: Title[], allowedKinds: TitleKind[], userId: string, query: string, limit = 30): Title[] {
+// Com onlyKinds, só os títulos desses grupos de categorias (a aba escolhida no formulário).
+export function candidateTitles(titles: Title[], allowedKinds: TitleKind[], userId: string, query: string, limit = 30, onlyKinds?: TitleKind[]): Title[] {
   const needle = searchKey(query);
+  const kindsHere = onlyKinds ? allowedKinds.filter((kind) => onlyKinds.includes(kind)) : allowedKinds;
   // O que a pessoa já viu ou jogou fica entre os "outros" (continua podendo ser escolhido, mas não vem na frente).
-  const wanted = buildWantList(titles, allowedKinds, userId).filter((item) => !item.done).map((item) => item.title);
+  const wanted = buildWantList(titles, kindsHere, userId).filter((item) => !item.done).map((item) => item.title);
   const wantedIds = new Set(wanted.map((title) => title.id));
-  const others = titles.filter((title) => allowedKinds.includes(title.kind) && !wantedIds.has(title.id)).sort((a, b) => b.id - a.id);
+  const others = titles.filter((title) => kindsHere.includes(title.kind) && !wantedIds.has(title.id)).sort((a, b) => b.id - a.id);
   return [...wanted, ...others].filter((title) => titleMatches(title, needle)).slice(0, limit);
 }

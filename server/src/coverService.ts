@@ -1,6 +1,7 @@
 import { Client } from "@rootsdk/server-app";
 import { Cover, CoverRequest, CoverResponse } from "@notas-app/gen-shared";
 import { CoverServiceBase } from "@notas-app/gen-server";
+import { coverAllowed } from "./coverAccess";
 import { coverRepository } from "./coverRepository";
 import { getBytes } from "./providers/http";
 
@@ -14,6 +15,10 @@ export const coverTuning = {
   maxImageBytes: 150_000,
   // Depois de uma falha de rede, espera isto antes de tentar de novo.
   retryAfterMs: 30_000,
+  // Quantas capas soltas (de busca, sem título) ficam guardadas no banco, e de quantas em quantas gravações o excesso é apagado.
+  // As capas dos títulos não entram nessa conta.
+  maxCached: 500,
+  trimEvery: 25,
 };
 
 const tmdbBase = "https://image.tmdb.org/t/p";
@@ -48,10 +53,23 @@ export function coverUrl(path: string): string {
   return /^\/[A-Za-z0-9_.-]+\.(jpg|png)$/i.test(path) ? `${tmdbBase}/w154${path}` : "";
 }
 
+// Versões menores do mesmo arquivo, da maior para a menor. As capas da AniList passam do teto de tamanho em cerca de 1 de cada 7
+// (o arquivo "medium" pode ter 180 KB); a versão "small" tem no máximo algumas dezenas de KB.
+export function smallerCovers(path: string): string[] {
+  if (!path.startsWith("al:")) return [];
+  if (path.includes("/cover/large/")) return [path.replace("/cover/large/", "/cover/medium/"), path.replace("/cover/large/", "/cover/small/")];
+  if (path.includes("/cover/medium/")) return [path.replace("/cover/medium/", "/cover/small/")];
+  return [];
+}
+
 type Loaded = { mime: string; data: Buffer } | "retry";
 
 export class CoverService extends CoverServiceBase {
   private failedAt = new Map<string, number>();
+  private saved = 0;
+  // Capas da AniList guardadas como "sem capa" pelas versões antigas (que desistiam de arquivos acima de 150 KB): cada uma é
+  // tentada de novo uma vez por execução do servidor, agora com a versão menor.
+  private retried = new Set<string>();
   private inFlight = new Map<string, Promise<Loaded>>();
 
   async get(request: CoverRequest, _client: Client): Promise<CoverResponse> {
@@ -92,9 +110,14 @@ export class CoverService extends CoverServiceBase {
     const url = coverUrl(path);
     if (!url) return { mime: "", data: Buffer.alloc(0) };
 
+    // Só capas que o app mostra (título da comunidade ou resultado de busca recente): nada de baixar caminho arbitrário.
+    if (!(await coverAllowed(path))) return { mime: "", data: Buffer.alloc(0) };
+
     try {
       const saved = await coverRepository.get(path);
-      if (saved) return saved;
+      const healable = saved !== null && saved.data.length === 0 && path.startsWith("al:") && !this.retried.has(path);
+      if (saved && !healable) return saved;
+      if (healable) this.retried.add(path);
     } catch {
       // Sem o cache, baixa de novo.
     }
@@ -102,7 +125,12 @@ export class CoverService extends CoverServiceBase {
     const failed = this.failedAt.get(path);
     if (failed !== undefined && Date.now() - failed < coverTuning.retryAfterMs) return "retry";
 
-    const result = await getBytes(url, coverTuning.maxImageBytes);
+    let result = await getBytes(url, coverTuning.maxImageBytes);
+    for (const smaller of smallerCovers(path)) {
+      if (result === null || result.status !== 413) break;
+      const smallerUrl = coverUrl(smaller);
+      if (smallerUrl) result = await getBytes(smallerUrl, coverTuning.maxImageBytes);
+    }
     if (result === null || result.status === 429 || result.status >= 500) {
       this.failedAt.set(path, Date.now());
       return "retry";
@@ -113,6 +141,7 @@ export class CoverService extends CoverServiceBase {
     const entry = valid ? { mime: result.mime, data: result.data } : { mime: "", data: Buffer.alloc(0) };
     try {
       await coverRepository.put(path, entry.mime, entry.data, Date.now());
+      if (++this.saved % coverTuning.trimEvery === 0) await coverRepository.trim(coverTuning.maxCached);
     } catch {
       // Não salvar não impede de mostrar.
     }

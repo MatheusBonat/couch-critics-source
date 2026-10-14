@@ -2,6 +2,7 @@ import { Client, RootServerException } from "@rootsdk/server-app";
 import {
   CommentRemoveRequest,
   CommentRemoveResponse,
+  Episode,
   EpisodeClearRatingRequest,
   EpisodeClearRatingResponse,
   EpisodeListRequest,
@@ -50,6 +51,7 @@ import { adminState, claimAdmin } from "./access";
 import { warnAdmins } from "./communityLog";
 import { enabledKinds, optionalKinds } from "./kinds";
 import { nightService } from "./nightService";
+import { rememberCovers } from "./coverAccess";
 import { ProviderError, ProviderErrorCode } from "./providers/http";
 import { Lang, TmdbKind, mergeSearchResults, tmdbCheck, tmdbDetails, tmdbSearch, tmdbSeasonEpisodes, tmdbSeasons } from "./providers/tmdb";
 import { omdbCheck, omdbRating, omdbSeasonRatings } from "./providers/omdb";
@@ -58,6 +60,21 @@ import { openLibrary } from "./providers/openlibrary";
 import { aniList, aniListEpisodes } from "./providers/anilist";
 import { musicBrainz } from "./providers/musicbrainz";
 import { IgdbCredentials, forgetIgdbTokens, igdbCheck, igdbDetails, igdbSearch } from "./providers/igdb";
+
+// Uma página de episódios: o que vem depois de afterNumber, até o orçamento de bytes (sempre pelo menos um episódio).
+export function pageOfEpisodes(episodes: Episode[], afterNumber: number): { episodes: Episode[]; hasMore: boolean; nextAfterNumber: number } {
+  const rest = afterNumber > 0 ? episodes.filter((episode) => episode.number > afterNumber) : episodes;
+  const page: Episode[] = [];
+  let bytes = 0;
+  for (const episode of rest) {
+    const size = Episode.toBinary(episode).length + 8;
+    if (page.length > 0 && bytes + size > tuning.episodePageBytes) break;
+    page.push(episode);
+    bytes += size;
+  }
+  const hasMore = page.length < rest.length;
+  return { episodes: page, hasMore, nextAfterNumber: hasMore ? page[page.length - 1].number : 0 };
+}
 
 const maxNameLength = 120;
 const maxCommentLength = 300;
@@ -83,6 +100,8 @@ export const tuning = {
   animeEpisodeMaxAgeMs: 12 * 60 * 60 * 1000,
   // Anime longo (centenas de episódios) é dividido em "temporadas" de 50 episódios, para a resposta não passar de 256 KiB.
   animeEpisodesPerPage: 50,
+  // Cada página de episódios tem cerca de 180 KB no máximo (o limite do Root é 256 KiB por mensagem).
+  episodePageBytes: 180_000,
   // Se algum episódio ainda não tem nota no IMDb, tenta de novo depois de 6 horas.
   imdbRetryMs: 6 * 60 * 60 * 1000,
   // Depois de uma falha do OMDb (limite do dia, fora do ar), espera antes de tentar de novo.
@@ -313,6 +332,13 @@ export class TitleService extends TitleServiceBase {
   }
 
   async search(request: TitleSearchRequest, _client: Client): Promise<TitleSearchResponse> {
+    const response = await this.searchSource(request);
+    // As capas dos resultados podem ser baixadas pelo servidor (ver coverAccess.ts).
+    rememberCovers(response.results.map((result) => result.posterPath));
+    return response;
+  }
+
+  private async searchSource(request: TitleSearchRequest): Promise<TitleSearchResponse> {
     if (request.kind === TitleKind.GAME) return this.searchGames(request);
 
     const catalog = catalogs[request.kind];
@@ -735,11 +761,11 @@ export class TitleService extends TitleServiceBase {
 
   async listEpisodes(request: EpisodeListRequest, _client: Client): Promise<EpisodeListResponse> {
     const title = await requireTitle(request.titleId);
-    const unavailable = (status: SearchStatus): EpisodeListResponse => ({ status, seasons: [], season: 0, episodes: [] });
+    const unavailable = (status: SearchStatus): EpisodeListResponse => ({ status, seasons: [], season: 0, episodes: [], hasMore: false, nextAfterNumber: 0 });
 
     // Animes da AniList têm uma lista só, de episódios numerados.
     if (title.kind === TitleKind.ANIME && title.source === "anilist" && title.externalId !== "") {
-      return this.listAnimeEpisodes(title, request.season, unavailable);
+      return this.listAnimeEpisodes(title, request.season, request.afterNumber, unavailable);
     }
 
     // Só séries que vieram do TMDB têm episódios. Séries adicionadas à mão não têm de onde tirar a lista.
@@ -758,11 +784,12 @@ export class TitleService extends TitleServiceBase {
       const season = seasons.find((item) => item.number === request.season)?.number ?? seasons[0].number;
       if (token) await this.ensureEpisodes(title, season, token);
 
+      const page = pageOfEpisodes(await episodeRepository.listEpisodes(title.id, season), request.afterNumber);
       return {
         status: SearchStatus.OK,
         seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount })),
         season,
-        episodes: await episodeRepository.listEpisodes(title.id, season),
+        ...page,
       };
     } catch (error) {
       if (!(error instanceof ProviderError)) throw error;
@@ -771,17 +798,18 @@ export class TitleService extends TitleServiceBase {
     }
   }
 
-  private async listAnimeEpisodes(title: Title, requested: number, unavailable: (status: SearchStatus) => EpisodeListResponse): Promise<EpisodeListResponse> {
+  private async listAnimeEpisodes(title: Title, requested: number, afterNumber: number, unavailable: (status: SearchStatus) => EpisodeListResponse): Promise<EpisodeListResponse> {
     try {
       const seasons = await this.ensureAnimeEpisodes(title);
       if (seasons.length === 0) return unavailable(SearchStatus.NOT_AVAILABLE);
 
       const season = seasons.find((item) => item.number === requested)?.number ?? seasons[0].number;
+      const page = pageOfEpisodes(await episodeRepository.listEpisodes(title.id, season), afterNumber);
       return {
         status: SearchStatus.OK,
         seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount })),
         season,
-        episodes: await episodeRepository.listEpisodes(title.id, season),
+        ...page,
       };
     } catch (error) {
       if (!(error instanceof ProviderError)) throw error;

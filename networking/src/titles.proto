@@ -300,6 +300,8 @@ message EpisodeListRequest {
   uint32 title_id = 1;
   // 0 = a primeira temporada.
   uint32 season = 2;
+  // 0 = desde o primeiro episódio; senão, só os episódios com número maior que este (próxima página).
+  uint32 after_number = 3;
 }
 
 message EpisodeListResponse {
@@ -308,6 +310,10 @@ message EpisodeListResponse {
   // Temporada a que os episódios pertencem.
   uint32 season = 3;
   repeated Episode episodes = 4;
+  // O Root limita cada mensagem a 256 KiB: temporada com muitas notas vem em páginas. Se há mais episódios,
+  // peça de novo com after_number = next_after_number.
+  bool has_more = 5;
+  uint32 next_after_number = 6;
 }
 
 message EpisodeRateRequest {

@@ -39,6 +39,9 @@
   --nt-surface-2: color-mix(in srgb, var(--nt-text) 7%, var(--nt-bg));
   --nt-hairline: color-mix(in srgb, var(--nt-text) 11%, transparent);
   --nt-muted: color-mix(in srgb, var(--nt-text) 68%, var(--nt-bg));
+  /* Fundo de botão e selo com texto por cima: a cor da marca escurecida um pouco, para o texto claro passar de 4,5:1 (AA).
+     No Root escuro, #3B6AF8 com texto #F2F2F2 dava só 4,08:1. */
+  --nt-accent-solid: color-mix(in srgb, var(--nt-accent) 82%, #000);
   --nt-accent-soft: color-mix(in srgb, var(--nt-accent) 16%, transparent);
   --nt-accent-line: color-mix(in srgb, var(--nt-accent) 55%, transparent);
   --nt-on-accent: var(--rootsdk-text-white, #ffffff);
@@ -110,13 +113,13 @@ p {
 }
 
 .button-primary {
-  background: var(--nt-accent);
+  background: var(--nt-accent-solid);
   color: var(--nt-on-accent);
   box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent), 0 1px 2px color-mix(in srgb, #000 25%, transparent);
 }
 
 .button-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--nt-accent) 88%, #fff);
+  background: color-mix(in srgb, var(--nt-accent-solid) 90%, #000);
 }
 
 .button-outline {
@@ -298,7 +301,7 @@ select.input {
 }
 
 .view-tab .count.is-live {
-  background: var(--nt-accent);
+  background: var(--nt-accent-solid);
   color: var(--nt-on-accent);
 }
 
@@ -518,6 +521,11 @@ select.input {
 
 .poster-loading {
   background-color: var(--nt-surface-2);
+}
+
+/* Resultado de busca: a coluna da capa tem a largura da capa (56px; 52px no celular), senão a capa encosta no nome. */
+.result {
+  grid-template-columns: 56px minmax(0, 1fr) auto;
 }
 
 .poster-empty {
@@ -781,15 +789,56 @@ select.input {
   text-transform: uppercase;
 }
 
-.title-done .title-head {
-  opacity: 0.62;
+/* Linha concluída: esmaece a capa, o anel e os chips; o texto fica inteiro (em cinza "muted", que já passa no contraste AA).
+   Opacidade na linha toda deixava o texto secundário com 2,6:1 no tema claro. */
+.title-done .poster,
+.title-done .score-col,
+.title-done .chips {
+  opacity: 0.6;
   transition: opacity var(--dur) var(--ease);
 }
 
-.title-done .title-head:hover,
-.title-done .title-head:focus-visible,
-.title-done .title-head[aria-expanded="true"] {
+.title-done .title-name {
+  color: var(--nt-muted);
+}
+
+.title-done .title-head:hover .poster,
+.title-done .title-head:hover .score-col,
+.title-done .title-head:hover .chips,
+.title-done .title-head:focus-visible .poster,
+.title-done .title-head:focus-visible .score-col,
+.title-done .title-head:focus-visible .chips,
+.title-done .title-head[aria-expanded="true"] .poster,
+.title-done .title-head[aria-expanded="true"] .score-col,
+.title-done .title-head[aria-expanded="true"] .chips {
   opacity: 1;
+}
+
+/* ---------- Party Night: títulos separados por grupo ---------- */
+.night-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.night-groups .want-chip[aria-selected="true"] {
+  border-color: var(--nt-accent-line);
+  background: var(--nt-accent-soft);
+  color: var(--nt-text);
+}
+
+.night-picked {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--nt-accent-solid);
+  color: var(--nt-on-accent);
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- movimento ---------- */
@@ -858,6 +907,10 @@ select.input {
   .poster-medium {
     width: 52px;
     height: 78px;
+  }
+
+  .result {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
   }
 
   /* Celular: ferramentas (configurações e idioma) numa linha fina em cima, e as três visões em colunas iguais com o ícone
@@ -974,5 +1027,12 @@ select.input {
 
   .input {
     min-height: 46px;
+  }
+}
+
+/* Resultado de busca em tela estreita: a ação desce para baixo do nome (styles.css já posiciona), então só duas colunas. */
+@media (max-width: 560px) {
+  .result {
+    grid-template-columns: 52px minmax(0, 1fr);
   }
 }

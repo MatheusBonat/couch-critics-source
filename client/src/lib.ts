@@ -268,20 +268,28 @@ export function hallOf(titles: Title[], tier: RatingTier): HallEntry[] {
     .slice(0, 10);
 }
 
-// Uma célula de CSV. Texto que começa com = + - @ vira texto puro, para uma planilha não executar como fórmula.
-function csvCell(value: string): string {
-  const safe = /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
-  return /[",\n\r]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
+type CsvValue = string | number;
+
+// Texto que, depois de eventuais espaços, começa com = + - @ (ou com as formas de largura total) ou que começa com tab, CR, LF
+// ou NUL é lido como fórmula pela planilha.
+const formulaStart = /^(?:[\t\r\n\u0000]|\s*[=+\-@\uFF1D\uFF0B\uFF0D\uFF20])/;
+
+// Uma célula de CSV. Todo texto vai entre aspas (com as aspas internas dobradas) e, se pudesse virar fórmula, leva um apóstrofo
+// na frente; as aspas sozinhas não impedem a fórmula. Número sai como número, sem aspas e sem apóstrofo.
+export function csvCell(value: CsvValue): string {
+  if (typeof value === "number") return Number.isFinite(value) ? String(value) : "";
+  const safe = formulaStart.test(value) ? `'${value}` : value;
+  return `"${safe.replace(/"/g, '""')}"`;
 }
 
 // Todas as notas da comunidade em CSV: uma linha por nota (e uma por título ainda sem nota).
 export function buildCsv(titles: Title[], memberName: (userId: string) => string): string {
-  const rows: string[][] = [["category", "title", "year", "member", "user_id", "score", "special", "comment", "spoiler", "rated_at"]];
+  const rows: CsvValue[][] = [["category", "title", "year", "member", "user_id", "score", "special", "comment", "spoiler", "rated_at"]];
   const keyOf = (kind: TitleKind) => kinds.find((item) => item.kind === kind)?.key ?? "";
 
   const ordered = [...titles].sort((a, b) => a.kind - b.kind || a.name.localeCompare(b.name));
   for (const title of ordered) {
-    const head = [keyOf(title.kind), title.name, title.year > 0 ? String(title.year) : ""];
+    const head: CsvValue[] = [keyOf(title.kind), title.name, title.year > 0 ? title.year : ""];
 
     if (title.ratings.length === 0) {
       rows.push([...head, "", "", "", "", "", "", ""]);
@@ -293,7 +301,7 @@ export function buildCsv(titles: Title[], memberName: (userId: string) => string
         ...head,
         memberName(rating.userId),
         rating.userId,
-        String(rating.score),
+        rating.score,
         special,
         rating.comment,
         rating.spoiler ? "yes" : "no",

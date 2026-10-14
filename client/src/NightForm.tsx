@@ -13,6 +13,7 @@ import {
   maxNightOptions,
   minNightOptions,
   nightFormError,
+  pickGroups,
   toInputValue,
 } from "./nights";
 
@@ -33,6 +34,7 @@ export function NightForm({ titles, allowedKinds, me, now, onCreated, onCancel }
   const [votingEnd, setVotingEnd] = useState(() => toInputValue(defaultVotingEnd(defaultStart(now), now)));
   const [chosen, setChosen] = useState<number[]>([]);
   const [query, setQuery] = useState("");
+  const [groupKey, setGroupKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
 
@@ -41,7 +43,17 @@ export function NightForm({ titles, allowedKinds, me, now, onCreated, onCancel }
   const error = nightFormError({ start: startMs, votingEnd: votingEndMs, titleIds: chosen }, now);
 
   const byId = useMemo(() => new Map(titles.map((title) => [title.id, title])), [titles]);
-  const candidates = useMemo(() => candidateTitles(titles, allowedKinds, me, query), [titles, allowedKinds, me, query]);
+
+  // Os títulos aparecem separados por grupo (filmes e séries / jogos / livros / músicas), uma aba para cada. Abre no primeiro
+  // grupo que tem título; a busca vale só dentro da aba aberta.
+  const groups = useMemo(() => pickGroups(allowedKinds), [allowedKinds]);
+  const countIn = (kindsOfGroup: TitleKind[]) => titles.filter((title) => kindsOfGroup.includes(title.kind)).length;
+  const active = groups.find((group) => group.key === groupKey) ?? groups.find((group) => countIn(group.kinds) > 0) ?? groups[0];
+  const chosenIn = (kindsOfGroup: TitleKind[]) => chosen.filter((id) => kindsOfGroup.includes(byId.get(id)?.kind ?? TitleKind.UNSPECIFIED)).length;
+  const candidates = useMemo(
+    () => candidateTitles(titles, allowedKinds, me, query, 30, active?.kinds),
+    [titles, allowedKinds, me, query, active],
+  );
 
   // Mudou o início: a votação não pode terminar depois dele, então acompanha quando ficaria fora do lugar.
   const changeStart = (value: string) => {
@@ -114,6 +126,28 @@ export function NightForm({ titles, allowedKinds, me, now, onCreated, onCancel }
           </ul>
         )}
         <p className="muted night-count">{t.nights.form.selected(chosen.length, maxNightOptions)}</p>
+
+        {groups.length > 1 && (
+          <div className="night-groups" role="tablist" aria-label={t.category}>
+            {groups.map((group) => {
+              const picked = chosenIn(group.kinds);
+              return (
+                <button
+                  key={group.key}
+                  type="button"
+                  role="tab"
+                  className="want-chip"
+                  aria-selected={active?.key === group.key}
+                  onClick={() => setGroupKey(group.key)}
+                >
+                  {t.nights.form.groups[group.key]}
+                  <span className="tab-count">{countIn(group.kinds)}</span>
+                  {picked > 0 && <span className="night-picked" title={t.nights.form.selected(picked, maxNightOptions)}>{picked}</span>}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         <input id="night-search" className="input" type="search" placeholder={t.nights.form.search} value={query} onChange={(event) => setQuery(event.target.value)} />
 

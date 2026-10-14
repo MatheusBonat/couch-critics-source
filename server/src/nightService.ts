@@ -15,6 +15,7 @@ import {
   TitleError,
 } from "@notas-app/gen-shared";
 import { NightServiceBase } from "@notas-app/gen-server";
+import { warnAdmins } from "./communityLog";
 import { adminState } from "./access";
 import { enabledKinds, optionalKinds } from "./kinds";
 import { NightState, nightRepository } from "./nightRepository";
@@ -55,11 +56,17 @@ function cut(text: string, max: number): string {
 }
 
 // Avisos do Root (indicador de atividade da comunidade e notificações). Nunca atrapalham quem está usando o app.
+// Se o Root recusar, o app segue normal; o motivo vai uma vez (a cada algumas horas) para o log do app, que os admins veem.
+async function noteNotificationFailure(key: string, error: unknown): Promise<void> {
+  const reason = cut(error instanceof Error ? error.message : String(error), 120);
+  await warnAdmins(key, `Couch Critics could not send a Root notification for Party Night (${reason}). Reminders may not arrive.`);
+}
+
 async function pingCommunity(): Promise<void> {
   try {
     await rootServer.community?.notifications?.setActivity({});
-  } catch {
-    // Só um aviso a mais.
+  } catch (error) {
+    await noteNotificationFailure("night-activity", error);
   }
 }
 
@@ -71,8 +78,8 @@ async function notifyMembers(userIds: string[], title: string, description: stri
       description: cut(description, 150),
       userIds: userIds as never,
     });
-  } catch {
-    // Só um aviso a mais.
+  } catch (error) {
+    await noteNotificationFailure("night-notify", error);
   }
 }
 
