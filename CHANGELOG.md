@@ -2,6 +2,11 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.4.4] - 2026-10-14
+
+### Fixed
+- The cover cache limit (added in 2.4.2) could delete the covers of titles that were still in use, so big communities would see covers reload over and over. The limit now applies only to loose covers from searches (500), and a title's cover is never removed by it
+
 ## [2.4.3] - 2026-10-14
 
 ### Fixed
