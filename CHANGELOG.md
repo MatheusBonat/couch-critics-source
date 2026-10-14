@@ -2,6 +2,17 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.4.2] - 2026-10-13
+
+### Fixed
+- **Covers of long anime lists and some popular anime**: about 1 in 7 popular AniList covers is larger than the 150 KB limit, and the app gave up on them for good ("no cover"). The server now tries the smaller version of the same file, and covers saved as "no cover" by older versions are tried again once
+- **Episode lists could pass Root's 256 KiB message limit** (for example 30 members rating 24 episodes with long comments). Episodes now load in pages sized by bytes, with a "Show more episodes" button
+- The exported CSV now protects every way a cell can start a spreadsheet formula (leading spaces, full-width signs, tab, line breaks), puts every text cell in quotes and leaves numbers as numbers
+
+### Security
+- The server only downloads covers that the app really shows (a title of the community or a recent search result) and keeps at most 1500 covers, so a member cannot make it fetch and store arbitrary paths
+- Cover downloads follow redirects by hand (only to the same host or archive.org, at most 3 hops) and stop reading as soon as the file passes the size limit
+
 ## [2.4.1] - 2026-10-13
 
 ### Changed
