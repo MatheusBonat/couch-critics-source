@@ -2,6 +2,11 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.5.0] - 2026-10-14
+
+### Changed
+- **Party Night**: when you pick the options of a night, the titles are now split into tabs by category: **Movies and series** (anime go here too), **Games**, **Books** and **Songs** (only the categories that are turned on appear). The search works inside the open tab, what you picked stays when you switch tabs, and each tab shows how many titles you picked in it. A night can still mix categories
+
 ## [2.4.4] - 2026-10-14
 
 ### Fixed
