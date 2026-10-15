@@ -1,5 +1,6 @@
-import { Rating, RatingTier, Title, TitleKind } from "@notas-app/gen-shared";
-import { average } from "./lib";
+import { Rating, RatingTier, Title, TitleKind, WatchStatus } from "@notas-app/gen-shared";
+import { Lang } from "./i18n";
+import { average, genresOf, watchStatusOf } from "./lib";
 
 // Estatísticas da comunidade e retrospectiva de cada pessoa. Só entram as notas dos títulos (as dos episódios não).
 
@@ -192,4 +193,70 @@ export function recapOf(titles: Title[], userId: string, year: number): Recap {
     hottest,
     busiestMonth: busiest.count > 0 ? busiest : null,
   };
+}
+
+// ---------- Por gênero ----------
+
+export interface GenreStat {
+  genre: string;
+  // Quantos títulos assistidos (jogados, lidos...) têm este gênero.
+  count: number;
+  // Média das notas desses títulos (null quando nenhum tem nota, só foi marcado como visto).
+  average: number | null;
+}
+
+export interface GenreReport {
+  stats: GenreStat[];
+  // Títulos assistidos que entraram na conta, e quantos deles têm gênero cadastrado (os adicionados à mão não têm).
+  watched: number;
+  withGenre: number;
+}
+
+// "Aventura, Drama, Ficção científica" -> ["Aventura", "Drama", "Ficção científica"], sem repetir.
+export function genreList(text: string): string[] {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const part of text.split(",")) {
+    const name = part.trim().slice(0, 60);
+    const key = name.toLocaleLowerCase();
+    if (name === "" || seen.has(key)) continue;
+    seen.add(key);
+    result.push(name);
+  }
+  return result;
+}
+
+// Os gêneros do que uma pessoa já assistiu: o título conta quando ela deu nota ou marcou "já vi" (userId null = a comunidade
+// toda, com os títulos que têm pelo menos uma nota). Com kind, só aquela categoria. O mais frequente vem primeiro.
+export function genreStats(titles: Title[], userId: string | null, lang: Lang, kind?: TitleKind): GenreReport {
+  const byGenre = new Map<string, { name: string; count: number; scores: number[] }>();
+  let watched = 0;
+  let withGenre = 0;
+
+  for (const title of titles) {
+    if (kind !== undefined && title.kind !== kind) continue;
+
+    const ratings = userId === null ? title.ratings : title.ratings.filter((rating) => rating.userId === userId);
+    const done = userId !== null && watchStatusOf(title, userId) === WatchStatus.DONE;
+    if (ratings.length === 0 && !done) continue;
+    watched += 1;
+
+    const names = genreList(genresOf(title, lang));
+    if (names.length === 0) continue;
+    withGenre += 1;
+
+    for (const name of names) {
+      const key = name.toLocaleLowerCase();
+      const entry = byGenre.get(key) ?? { name, count: 0, scores: [] };
+      entry.count += 1;
+      for (const rating of ratings) entry.scores.push(rating.score);
+      byGenre.set(key, entry);
+    }
+  }
+
+  const stats = [...byGenre.values()]
+    .map((entry) => ({ genre: entry.name, count: entry.count, average: entry.scores.length === 0 ? null : entry.scores.reduce((total, score) => total + score, 0) / entry.scores.length }))
+    .sort((a, b) => b.count - a.count || (b.average ?? -1) - (a.average ?? -1) || a.genre.localeCompare(b.genre, lang));
+
+  return { stats, watched, withGenre };
 }

@@ -20,8 +20,11 @@ import {
   downloadCsv,
   errorMessage,
   FilterKey,
+  franchiseOptions,
+  inFranchise,
   kinds,
   matchesFilter,
+  noFranchise,
   optionalKinds,
   posterPathOf,
   pageSize,
@@ -39,15 +42,16 @@ import {
 
 const showAllTitles = Number.MAX_SAFE_INTEGER;
 
-const sortKeys: SortKey[] = ["recent", "best", "most", "yearNew", "yearOld"];
+const sortKeys: SortKey[] = ["recent", "best", "most", "yearNew", "yearOld", "name"];
 
 const languages: { lang: Lang; label: string; name: string }[] = [
   { lang: "pt", label: "PT", name: "Português" },
   { lang: "en", label: "EN", name: "English" },
 ];
 
-type PanelKey = "none" | "settings" | "about" | "hall" | "stats" | "import";
-type ViewKey = "notes" | "toWatch" | "nights";
+type PanelKey = "none" | "settings" | "about" | "import";
+// Estatísticas e hall da fama são telas do topo, como as outras três (antes eram painéis abertos pelo rodapé).
+type ViewKey = "notes" | "toWatch" | "nights" | "stats" | "hall";
 
 const App = () => {
   const me = String(rootClient.users.getCurrentUserId());
@@ -60,6 +64,7 @@ const App = () => {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState<SortKey>("recent");
   const [filter, setFilter] = useState<FilterKey>("all");
+  const [franchise, setFranchise] = useState("");
   const [limit, setLimit] = useState(pageSize);
   const [adding, setAdding] = useState(false);
   const [addName, setAddName] = useState("");
@@ -263,13 +268,24 @@ const App = () => {
 
   const countByKind = (index: number) => (titles ?? []).filter((title) => title.kind === visibleKinds[index].kind).length;
 
+  // As franquias da categoria aberta (para o filtro e para sugerir ao escrever a franquia de um título).
+  const kindTitles = useMemo(() => (titles ?? []).filter((title) => title.kind === kind.kind), [titles, kind]);
+  const franchises = useMemo(() => franchiseOptions(kindTitles), [kindTitles]);
+  const franchiseNames = useMemo(() => franchises.map((item) => item.name), [franchises]);
+  const withoutFranchise = useMemo(() => kindTitles.filter((title) => title.franchise.trim() === "").length, [kindTitles]);
+  // Se a franquia escolhida deixou de existir (o último título dela mudou ou foi apagado), o filtro volta para "todas".
+  const franchiseChoice =
+    franchise === noFranchise
+      ? withoutFranchise > 0 ? noFranchise : ""
+      : franchises.find((item) => searchKey(item.name) === searchKey(franchise))?.name ?? "";
+
   const visible = useMemo(() => {
     const needle = searchKey(query);
-    const ofKind = (titles ?? []).filter(
-      (title) => title.kind === kind.kind && titleMatches(title, needle) && matchesFilter(title, filter, me),
+    const ofKind = kindTitles.filter(
+      (title) => titleMatches(title, needle) && matchesFilter(title, filter, me) && inFranchise(title, franchiseChoice),
     );
-    return sortTitles(ofKind, sort);
-  }, [titles, kind, query, sort, filter, me]);
+    return sortTitles(ofKind, sort, lang);
+  }, [kindTitles, query, sort, filter, franchiseChoice, me, lang]);
 
   const handleChanged = (title: Title) => {
     setNotice(null);
@@ -308,6 +324,7 @@ const App = () => {
     setAdding(false);
     setQuery("");
     setFilter("all");
+    setFranchise("");
     setLimit(showAllTitles);
     setOpenId(title.id);
     setTimeout(() => document.getElementById(`title-${title.id}`)?.scrollIntoView({ block: "center" }), 50);
@@ -402,7 +419,9 @@ const App = () => {
   const selectKind = (index: number) => {
     setKindIndex(index);
     // A busca da lista é de cada categoria: o que foi digitado em "Músicas" não deve esconder os "Animes".
+    // Com a franquia é igual: as de "Filmes" não existem em "Jogos".
     setQuery("");
+    setFranchise("");
     leave();
   };
 
@@ -454,6 +473,15 @@ const App = () => {
                 {openVotes}
               </span>
             )}
+          </button>
+          <span className="view-sep" aria-hidden="true" />
+          <button type="button" className="view-tab view-tab-report" aria-current={view === "stats" ? "page" : undefined} onClick={() => selectView("stats")}>
+            <IconStats />
+            <span className="view-label">{t.stats.link}</span>
+          </button>
+          <button type="button" className="view-tab view-tab-report" aria-current={view === "hall" ? "page" : undefined} onClick={() => selectView("hall")}>
+            <IconHall />
+            <span className="view-label">{t.hall.link}</span>
           </button>
         </nav>
 
@@ -522,10 +550,6 @@ const App = () => {
 
       {panel === "about" && <AboutPanel onClose={() => setPanel("none")} />}
 
-      {panel === "stats" && <StatsPanel titles={shownTitles} me={me} profiles={profiles} onOpen={openTitle} onClose={() => setPanel("none")} />}
-
-      {panel === "hall" && <HallPanel titles={shownTitles} me={me} profiles={profiles} onOpen={openTitle} onClose={() => setPanel("none")} />}
-
       {panel === "import" && (
         <ImportPanel
           titles={titles ?? []}
@@ -551,7 +575,15 @@ const App = () => {
         />
       )}
 
-      {view === "nights" ? (
+      {view === "stats" ? (
+        <div className="view-enter">
+          <StatsPanel titles={shownTitles} me={me} profiles={profiles} visibleKinds={visibleKinds} onOpen={openTitle} onClose={() => selectView("notes")} />
+        </div>
+      ) : view === "hall" ? (
+        <div className="view-enter">
+          <HallPanel titles={shownTitles} me={me} profiles={profiles} onOpen={openTitle} onClose={() => selectView("notes")} />
+        </div>
+      ) : view === "nights" ? (
         <section id="nights-panel" className="view-enter" aria-label={t.nights.title}>
           <NightsView
             nights={nights}
@@ -617,7 +649,7 @@ const App = () => {
         aria-labelledby={`tab-${kindIndex}`}
         aria-busy={titles === null && !loadFailure}
       >
-        <div className="filters">
+        <div className={franchises.length > 0 ? "filters has-franchise" : "filters"}>
           <div className="field search-field">
             <label htmlFor="search" className="visually-hidden">
               {t.searchIn(kindText.plural)}
@@ -661,6 +693,23 @@ const App = () => {
             </select>
           </div>
 
+          {franchises.length > 0 && (
+            <div className="field franchise-field">
+              <label htmlFor="franchise" className="visually-hidden">
+                {t.franchise.label}
+              </label>
+              <select id="franchise" className="input" value={franchiseChoice} onChange={(event) => setFranchise(event.target.value)}>
+                <option value="">{t.franchise.all(kindTitles.length)}</option>
+                {franchises.map((item) => (
+                  <option key={item.name} value={item.name}>
+                    {t.franchise.option(item.name, item.count)}
+                  </option>
+                ))}
+                {withoutFranchise > 0 && <option value={noFranchise}>{t.franchise.none(withoutFranchise)}</option>}
+              </select>
+            </div>
+          )}
+
           <button type="button" className="button-primary" disabled={adding} onClick={() => startAdding("")}>
             <IconAdd />
             {kindText.add}
@@ -687,7 +736,7 @@ const App = () => {
         ) : visible.length === 0 ? (
           <div className="empty">
             <span className="empty-icon"><KindIcon kind={kind.key} /></span>
-            {filter !== "all" && !hasFilter && countByKind(Math.min(kindIndex, visibleKinds.length - 1)) > 0 ? (
+            {(filter !== "all" || franchiseChoice !== "") && !hasFilter && countByKind(Math.min(kindIndex, visibleKinds.length - 1)) > 0 ? (
               <p>{filter === "unrated" ? t.filters.allRated : t.filters.none}</p>
             ) : hasFilter ? (
               <>
@@ -717,6 +766,7 @@ const App = () => {
                   open={openId === title.id}
                   profiles={profiles}
                   scheduled={scheduled.get(title.id)}
+                  franchiseNames={franchiseNames}
                   onToggle={() => setOpenId(openId === title.id ? null : title.id)}
                   onChanged={handleChanged}
                   onDeleted={handleDeleted}
@@ -747,14 +797,6 @@ const App = () => {
       )}
 
       <footer className="app-footer">
-        <button type="button" className="button-quiet" aria-pressed={panel === "stats"} onClick={() => toggle("stats")}>
-          <IconStats />
-          {t.stats.link}
-        </button>
-        <button type="button" className="button-quiet" aria-pressed={panel === "hall"} onClick={() => toggle("hall")}>
-          <IconHall />
-          {t.hall.link}
-        </button>
         <button type="button" className="button-quiet" aria-pressed={panel === "import"} onClick={() => toggle("import")}>
           <IconImport />
           {t.importer.link}

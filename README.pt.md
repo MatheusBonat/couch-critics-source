@@ -37,7 +37,7 @@ Um app gratuito e de código aberto para o [Root](https://www.rootapp.com). Todo
 - **Party Night**: combine uma noite de filme ou jogo. Escolha de 2 a 8 títulos, defina o prazo da votação, todo mundo vota (os votos são abertos) e diz se vai. O vencedor vira uma noite marcada, e as notificações do Root lembram quem vai
 
 **Conhecer a turma**
-- Quem pensa parecido com você, os títulos que racham o grupo, o seu ano em notas e o Hall da fama e da vergonha
+- Quem pensa parecido com você, os títulos que racham o grupo, o seu ano em notas, os gêneros que cada pessoa assistiu e o Hall da fama e da vergonha
 
 **Feito para comunidades**
 - Português e inglês, tema claro e escuro (acompanha o tema do Root), telas estreitas e atualização ao vivo para todos

@@ -18,6 +18,21 @@ interface Props {
 
 const keyOf = (episode: Episode) => `${episode.season}:${episode.number}`;
 
+// Uma nota nova chegou. Episódio de número 0 é a temporada inteira: atualiza o resumo dela e a média na lista de temporadas;
+// os outros trocam o episódio na lista.
+function withEpisode(current: EpisodeListResponse | null, updated: Episode): EpisodeListResponse | null {
+  if (!current) return current;
+
+  if (updated.number === 0) {
+    const average = averageOf(updated.ratings);
+    const seasons = current.seasons.map((item) => (item.number === updated.season ? { ...item, rated: updated.ratings.length, avg: average ?? 0 } : item));
+    return { ...current, seasons, seasonSummary: current.season === updated.season ? updated : current.seasonSummary };
+  }
+
+  if (current.season !== updated.season) return current;
+  return { ...current, episodes: current.episodes.map((episode) => (episode.number === updated.number ? updated : episode)) };
+}
+
 // Episódios de uma série do TMDB: a lista por temporada, a nota do IMDb (ou a do TMDB, quando o IMDb
 // não tem) e a nota de cada membro por episódio.
 export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, onError }: Props) {
@@ -79,13 +94,7 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
       const updated = event.episode;
       if (event.titleId !== title.id || !updated) return;
 
-      setData((current) => {
-        if (!current || current.season !== updated.season) return current;
-        return {
-          ...current,
-          episodes: current.episodes.map((episode) => (episode.number === updated.number ? updated : episode)),
-        };
-      });
+      setData((current) => withEpisode(current, updated));
     };
 
     titleServiceClient.on(TitleServiceClientEvent.EpisodeUpdated, onEpisodeUpdated);
@@ -94,10 +103,7 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
     };
   }, [open, title.id]);
 
-  const replaceEpisode = (updated: Episode) =>
-    setData((current) =>
-      current ? { ...current, episodes: current.episodes.map((episode) => (episode.number === updated.number ? updated : episode)) } : current,
-    );
+  const replaceEpisode = (updated: Episode) => setData((current) => withEpisode(current, updated));
 
   // Moderação: o admin apaga o texto do comentário de outra pessoa neste episódio; a nota fica.
   const removeComment = async (episode: Episode, userId: string) => {
@@ -136,11 +142,97 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
                 ? t.episodes.unavailable
                 : null;
 
+  // Uma linha da lista: um episódio ou, com número 0, a temporada inteira (a nota geral da temporada).
+  const renderRow = (episode: Episode) => {
+    const isSeason = episode.number === 0;
+    const key = keyOf(episode);
+    const expanded = openEpisode === key;
+    const avg = averageOf(episode.ratings);
+    const mine = episode.ratings.find((rating) => rating.userId === me);
+    const outside = isSeason ? null : episodeOutsideRating(episode);
+    const aired = isSeason ? "" : formatAirDate(episode.airDate, t.locale);
+    const bodyId = `${id}-${key.replace(":", "-")}`;
+
+    return (
+      <li key={key} className={isSeason ? "episode season-row" : "episode"}>
+        <button type="button" className="episode-head" aria-expanded={expanded} aria-controls={bodyId} onClick={() => setOpenEpisode(expanded ? null : key)}>
+          <span className="episode-code">
+            {isSeason ? t.episodes.seasonCode(episode.season) : isAnime ? t.episodes.animeCode(episode.number) : t.episodes.code(episode.season, episode.number)}
+          </span>
+
+          <span className="episode-main">
+            <span className="episode-name">{isSeason ? t.episodes.seasonRating(episode.season) : episodeName(episode, lang) || t.episodes.animeName(episode.number)}</span>
+            {aired && <span className="episode-meta">{aired}</span>}
+          </span>
+
+          <span className="episode-outside">
+            {outside &&
+              (outside.source === "imdb" ? (
+                <span className="outside">
+                  {t.imdbLabel} {formatScore(outside.value, t.locale)}
+                </span>
+              ) : (
+                <span className="outside outside-alt" title={t.episodes.tmdbTitle(formatScore(outside.value, t.locale), episode.tmdbVotes)}>
+                  {t.episodes.tmdbLabel} {formatScore(outside.value, t.locale)}
+                </span>
+              ))}
+          </span>
+
+          <span className="episode-side">
+            <span className="episode-avg">{avg === null ? t.noRatings : `${formatScore(avg, t.locale)}, ${t.ratingCount(episode.ratings.length)}`}</span>
+            <span className={mine ? "mine" : "mine mine-empty"}>{mine ? t.yourRatingValue(ratingLabel(mine, t)) : t.rate}</span>
+          </span>
+        </button>
+
+        {expanded && (
+          <div className="episode-body" id={bodyId}>
+            {isSeason && <p className="muted season-hint">{t.episodes.seasonHint}</p>}
+
+            {episode.ratings.length > 0 && (
+              <VoteList
+                ratings={episode.ratings}
+                me={me}
+                profiles={profiles}
+                onRemoveComment={isAdmin ? (userId) => removeComment(episode, userId) : undefined}
+                onReact={(ratingUserId, emoji) => react(episode, ratingUserId, emoji)}
+              />
+            )}
+
+            <RatingForm
+              key={mine ? `${mine.score}-${mine.tier}-${mine.comment}-${mine.spoiler}` : "new"}
+              mine={mine}
+              onError={onError}
+              save={async (input) => {
+                const response = await titleServiceClient.rateEpisode({
+                  titleId: title.id,
+                  season: episode.season,
+                  number: episode.number,
+                  ...input,
+                });
+                if (response.episode) replaceEpisode(response.episode);
+                if (response.title) onTitleChanged(response.title);
+              }}
+              clear={async () => {
+                const response = await titleServiceClient.clearEpisodeRating({
+                  titleId: title.id,
+                  season: episode.season,
+                  number: episode.number,
+                });
+                if (response.episode) replaceEpisode(response.episode);
+                if (response.title) onTitleChanged(response.title);
+              }}
+            />
+          </div>
+        )}
+      </li>
+    );
+  };
+
   if (!open) {
     return (
       <div className="episodes-closed">
         <button type="button" className="button-outline" aria-expanded={false} onClick={() => setOpen(true)}>
-          {t.episodes.open}
+          {isAnime ? t.episodes.open : t.episodes.openSeries}
         </button>
       </div>
     );
@@ -168,7 +260,9 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
               const from = data.seasons.slice(0, index).reduce((sum, previous) => sum + previous.episodeCount, 0) + 1;
               return (
                 <option key={item.number} value={item.number}>
-                  {isAnime ? t.episodes.animeRange(from, from + item.episodeCount - 1) : t.episodes.seasonOption(item.number, item.episodeCount)}
+                  {isAnime
+                    ? t.episodes.animeRange(from, from + item.episodeCount - 1)
+                    : t.episodes.seasonOption(item.number, item.episodeCount) + (item.rated > 0 ? ` · ${t.episodes.seasonOptionRated(formatScore(item.avg, t.locale))}` : "")}
                 </option>
               );
             })}
@@ -208,97 +302,13 @@ export function EpisodesPanel({ title, me, isAdmin, profiles, onTitleChanged, on
 
       {!loading && !failed && data && !statusMessage && data.episodes.length === 0 && <p className="muted">{t.episodes.empty}</p>}
 
-      {!loading && !failed && data && !statusMessage && data.episodes.length > 0 && (
-        <ul className="episode-list">
-          {data.episodes.map((episode) => {
-            const key = keyOf(episode);
-            const expanded = openEpisode === key;
-            const avg = averageOf(episode.ratings);
-            const mine = episode.ratings.find((rating) => rating.userId === me);
-            const outside = episodeOutsideRating(episode);
-            const aired = formatAirDate(episode.airDate, t.locale);
-            const bodyId = `${id}-${key.replace(":", "-")}`;
-
-            return (
-              <li key={key} className="episode">
-                <button
-                  type="button"
-                  className="episode-head"
-                  aria-expanded={expanded}
-                  aria-controls={bodyId}
-                  onClick={() => setOpenEpisode(expanded ? null : key)}
-                >
-                  <span className="episode-code">{isAnime ? t.episodes.animeCode(episode.number) : t.episodes.code(episode.season, episode.number)}</span>
-
-                  <span className="episode-main">
-                    <span className="episode-name">{episodeName(episode, lang) || t.episodes.animeName(episode.number)}</span>
-                    {aired && <span className="episode-meta">{aired}</span>}
-                  </span>
-
-                  <span className="episode-outside">
-                    {outside &&
-                      (outside.source === "imdb" ? (
-                        <span className="outside">
-                          {t.imdbLabel} {formatScore(outside.value, t.locale)}
-                        </span>
-                      ) : (
-                        <span className="outside outside-alt" title={t.episodes.tmdbTitle(formatScore(outside.value, t.locale), episode.tmdbVotes)}>
-                          {t.episodes.tmdbLabel} {formatScore(outside.value, t.locale)}
-                        </span>
-                      ))}
-                  </span>
-
-                  <span className="episode-side">
-                    <span className="episode-avg">
-                      {avg === null ? t.noRatings : `${formatScore(avg, t.locale)}, ${t.ratingCount(episode.ratings.length)}`}
-                    </span>
-                    <span className={mine ? "mine" : "mine mine-empty"}>{mine ? t.yourRatingValue(ratingLabel(mine, t)) : t.rate}</span>
-                  </span>
-                </button>
-
-                {expanded && (
-                  <div className="episode-body" id={bodyId}>
-                    {episode.ratings.length > 0 && (
-                      <VoteList
-                        ratings={episode.ratings}
-                        me={me}
-                        profiles={profiles}
-                        onRemoveComment={isAdmin ? (userId) => removeComment(episode, userId) : undefined}
-                        onReact={(ratingUserId, emoji) => react(episode, ratingUserId, emoji)}
-                      />
-                    )}
-
-                    <RatingForm
-                      key={mine ? `${mine.score}-${mine.tier}-${mine.comment}-${mine.spoiler}` : "new"}
-                      mine={mine}
-                      onError={onError}
-                      save={async (input) => {
-                        const response = await titleServiceClient.rateEpisode({
-                          titleId: title.id,
-                          season: episode.season,
-                          number: episode.number,
-                          ...input,
-                        });
-                        if (response.episode) replaceEpisode(response.episode);
-                        if (response.title) onTitleChanged(response.title);
-                      }}
-                      clear={async () => {
-                        const response = await titleServiceClient.clearEpisodeRating({
-                          titleId: title.id,
-                          season: episode.season,
-                          number: episode.number,
-                        });
-                        if (response.episode) replaceEpisode(response.episode);
-                        if (response.title) onTitleChanged(response.title);
-                      }}
-                    />
-                  </div>
-                )}
-              </li>
-            );
-          })}
+      {!loading && !failed && data && !statusMessage && !isAnime && data.seasonSummary && (
+        <ul className="episode-list season-rating-list" aria-label={t.episodes.seasonRating(data.season)}>
+          {renderRow(data.seasonSummary)}
         </ul>
       )}
+
+      {!loading && !failed && data && !statusMessage && data.episodes.length > 0 && <ul className="episode-list">{data.episodes.map((episode) => renderRow(episode))}</ul>}
 
       {!loading && !failed && data && data.hasMore && (
         <div className="show-more">

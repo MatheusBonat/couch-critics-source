@@ -4,7 +4,7 @@ import { Night, Title, TitleKind } from "@notas-app/gen-shared";
 import { IconToWatch } from "./icons";
 import { TitleItem } from "./TitleItem";
 import { useI18n } from "./i18n";
-import { buildWantList, countWanted, KindInfo, pageSize } from "./lib";
+import { buildWantList, countWanted, franchiseOptions, KindInfo, pageSize } from "./lib";
 
 interface Props {
   titles: Title[];
@@ -36,6 +36,7 @@ export function WantList({ titles, visibleKinds, me, isAdmin, profiles, openId, 
   const total = useMemo(() => [...counts.values()].reduce((sum, count) => sum + count, 0), [counts]);
   const items = useMemo(() => buildWantList(titles, allowed, me, { kind: kindFilter }), [titles, allowed, me, kindFilter]);
   // Os que eu já vi, joguei, li ou ouvi ficam no fim, numa parte separada.
+  const franchiseNames = useMemo(() => franchiseOptions(titles).map((item) => item.name), [titles]);
   const pending = useMemo(() => items.filter((item) => !item.done), [items]);
   const finished = useMemo(() => items.filter((item) => item.done), [items]);
 
@@ -101,6 +102,7 @@ export function WantList({ titles, visibleKinds, me, isAdmin, profiles, openId, 
                   wantedBy={item.wanters}
                   showWatch
                   scheduled={scheduled.get(item.title.id)}
+                  franchiseNames={franchiseNames}
                   onToggle={() => onToggle(item.title.id)}
                   onChanged={onChanged}
                   onDeleted={onDeleted}
@@ -137,6 +139,7 @@ export function WantList({ titles, visibleKinds, me, isAdmin, profiles, openId, 
                     showWatch
                     done
                     scheduled={scheduled.get(item.title.id)}
+                    franchiseNames={franchiseNames}
                     onToggle={() => onToggle(item.title.id)}
                     onChanged={onChanged}
                     onDeleted={onDeleted}

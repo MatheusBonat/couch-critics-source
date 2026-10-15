@@ -5,22 +5,24 @@ import { RatingTier, Title } from "@notas-app/gen-shared";
 import { Poster } from "./Poster";
 import { useI18n } from "./i18n";
 import { displayName } from "./profiles";
-import { compatibility, communityOverview, divisiveTitles, memberStats, pairsOf, recapOf, recapYears, scoreDistribution } from "./stats";
-import { formatScore, kinds, posterPathOf, ratingLabel, titleName } from "./lib";
+import { compatibility, communityOverview, divisiveTitles, genreStats, memberStats, pairsOf, recapOf, recapYears, scoreDistribution } from "./stats";
+import { formatScore, KindInfo, kinds, posterPathOf, ratingLabel, titleName } from "./lib";
 
 interface Props {
   titles: Title[];
   me: string;
   profiles: Map<string, UserProfile>;
+  // As categorias ligadas na comunidade (para filtrar os gêneros por categoria).
+  visibleKinds: KindInfo[];
   onOpen: (title: Title) => void;
   onClose: () => void;
 }
 
-type Tab = "community" | "mine";
+type Tab = "community" | "mine" | "genres";
 
-// Estatísticas da comunidade (quem pensa parecido, membros, polêmicos, distribuição das notas) e a retrospectiva
-// de cada pessoa por ano. Tudo calculado a partir das notas que já estão na lista.
-export function StatsPanel({ titles, me, profiles, onOpen, onClose }: Props) {
+// Estatísticas da comunidade (quem pensa parecido, membros, polêmicos, distribuição das notas), a retrospectiva
+// de cada pessoa por ano e os gêneros que cada um assistiu. Tudo calculado a partir das notas que já estão na lista.
+export function StatsPanel({ titles, me, profiles, visibleKinds, onOpen, onClose }: Props) {
   const { t, lang } = useI18n();
   const [tab, setTab] = useState<Tab>("community");
 
@@ -48,12 +50,17 @@ export function StatsPanel({ titles, me, profiles, onOpen, onClose }: Props) {
         <button type="button" className={tab === "mine" ? "stats-tab is-active" : "stats-tab"} aria-pressed={tab === "mine"} onClick={() => setTab("mine")}>
           {t.stats.tabMine}
         </button>
+        <button type="button" className={tab === "genres" ? "stats-tab is-active" : "stats-tab"} aria-pressed={tab === "genres"} onClick={() => setTab("genres")}>
+          {t.stats.tabGenres}
+        </button>
       </div>
 
       {tab === "community" ? (
         <Community titles={titles} me={me} nameOf={nameOf} onOpen={onOpen} lang={lang} />
-      ) : (
+      ) : tab === "mine" ? (
         <MyYear titles={titles} me={me} onOpen={onOpen} lang={lang} />
+      ) : (
+        <Genres titles={titles} me={me} nameOf={nameOf} visibleKinds={visibleKinds} lang={lang} />
       )}
     </section>
   );
@@ -272,6 +279,81 @@ function MyYear({ titles, me, onOpen, lang }: { titles: Title[]; me: string; onO
           )}
 
           <p className="muted">{t.stats.yearNote}</p>
+        </>
+      )}
+    </div>
+  );
+}
+
+const genresPreview = 12;
+
+// Os gêneros do que a pessoa assistiu (deu nota ou marcou "já vi"): de quem e de qual categoria, o mais frequente primeiro.
+function Genres({ titles, me, nameOf, visibleKinds, lang }: { titles: Title[]; me: string; nameOf: (id: string) => string; visibleKinds: KindInfo[]; lang: "pt" | "en" }) {
+  const { t } = useI18n();
+  const [who, setWho] = useState<string>(me);
+  const [kindValue, setKindValue] = useState("all");
+  const [showAll, setShowAll] = useState(false);
+
+  const members = useMemo(() => memberStats(titles).map((member) => member.userId).filter((id) => id !== me), [titles, me]);
+  const kind = kindValue === "all" ? undefined : Number(kindValue);
+  const report = useMemo(() => genreStats(titles, who === "all" ? null : who, lang, kind), [titles, who, lang, kind]);
+
+  const shown = showAll ? report.stats : report.stats.slice(0, genresPreview);
+  const maxCount = Math.max(1, ...report.stats.map((item) => item.count));
+
+  return (
+    <div className="stats-body">
+      <div className="genre-filters">
+        <div className="field">
+          <label htmlFor="genre-who">{t.stats.genreWho}</label>
+          <select id="genre-who" className="input" value={who} onChange={(event) => setWho(event.target.value)}>
+            <option value={me}>{t.youTitle}</option>
+            {members.map((id) => (
+              <option key={id} value={id}>
+                {nameOf(id)}
+              </option>
+            ))}
+            <option value="all">{t.stats.genreAll}</option>
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="genre-kind">{t.stats.genreKind}</label>
+          <select id="genre-kind" className="input" value={kindValue} onChange={(event) => setKindValue(event.target.value)}>
+            <option value="all">{t.stats.genreKindAll}</option>
+            {visibleKinds.map((item) => (
+              <option key={item.kind} value={item.kind}>
+                {t.kinds[item.key].tab}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <h3 className="stats-heading">{t.stats.genresHeading}</h3>
+
+      {report.stats.length === 0 ? (
+        <p className="muted">{report.watched === 0 ? t.stats.genresNothing : t.stats.genresNone(report.watched)}</p>
+      ) : (
+        <>
+          <p className="muted">{t.stats.genresSummary(report.watched, report.withGenre)}</p>
+          <ol className="genre-list">
+            {shown.map((item) => (
+              <li key={item.genre} className="genre-row">
+                <span className="genre-name">{item.genre}</span>
+                <span className="genre-bar" aria-hidden="true">
+                  <span className="genre-fill" style={{ width: `${Math.max(4, Math.round((item.count / maxCount) * 100))}%` }} />
+                </span>
+                <span className="genre-count">{t.stats.genreCount(item.count)}</span>
+                <span className="genre-avg muted">{item.average === null ? "" : t.stats.genreAverage(formatScore(item.average, t.locale))}</span>
+              </li>
+            ))}
+          </ol>
+          {report.stats.length > genresPreview && (
+            <button type="button" className="button-quiet" aria-expanded={showAll} onClick={() => setShowAll((current) => !current)}>
+              {showAll ? t.stats.genresLess : t.stats.genresMore(report.stats.length)}
+            </button>
+          )}
+          <p className="muted">{t.stats.genresHint}</p>
         </>
       )}
     </div>

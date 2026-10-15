@@ -29,6 +29,7 @@ interface TitleRow {
   platforms: string;
   details_checked_at: number;
   creator: string;
+  franchise: string;
 }
 
 interface RatingRow {
@@ -96,6 +97,7 @@ function toTitle(
     genresPt: row.genres_pt ?? "",
     genresEn: row.genres_en ?? "",
     platforms: row.platforms ?? "",
+    franchise: row.franchise ?? "",
     statuses,
     creator: row.creator ?? "",
   };
@@ -125,6 +127,8 @@ export interface TitleDetails {
   genresPt: string;
   genresEn: string;
   platforms: string;
+  // Franquia que a fonte (TMDB, IGDB) conhece; vazia quando não tem.
+  franchise: string;
 }
 
 export class TitleRepository {
@@ -249,6 +253,7 @@ export class TitleRepository {
               genres_pt: source.details.genresPt,
               genres_en: source.details.genresEn,
               platforms: source.details.platforms,
+              franchise: source.details.franchise,
               details_checked_at: Date.now(),
             }
           : {}),
@@ -307,7 +312,13 @@ export class TitleRepository {
       genres_en: details.genresEn,
       platforms: details.platforms,
       details_checked_at: checkedAt,
+      // A franquia da fonte só entra quando o título ainda não tem uma: a que alguém escreveu à mão nunca é trocada.
+      franchise: knex.raw("case when franchise = '' then ? else franchise end", [details.franchise]) as unknown as string,
     });
+  }
+
+  public async setFranchise(id: number, franchise: string): Promise<void> {
+    await knex<TitleRow>(titlesTable).where({ id }).update({ franchise });
   }
 
   public async markDetailsChecked(id: number, checkedAt: number): Promise<void> {
@@ -422,6 +433,13 @@ export async function initializeDatabase(): Promise<void> {
   }
   await ensureColumn(titlesTable, "details_checked_at", (table) => table.bigInteger("details_checked_at").notNullable().defaultTo(0));
   await ensureColumn(titlesTable, "creator", (table) => table.text("creator").notNullable().defaultTo(""));
+
+  // Versão 2.6: franquia. Bancos antigos ganham a coluna e os filmes e jogos de fonte voltam para a fila de detalhes,
+  // para o servidor buscar a franquia deles aos poucos, em segundo plano.
+  if (!(await knex.schema.hasColumn(titlesTable, "franchise"))) {
+    await knex.schema.alterTable(titlesTable, (table) => table.text("franchise").notNullable().defaultTo(""));
+    await knex(titlesTable).whereIn("source", ["tmdb", "igdb"]).whereIn("kind", [1, 3]).update({ details_checked_at: 0 });
+  }
 
   await initializeEpisodes();
   await initializeReactions();

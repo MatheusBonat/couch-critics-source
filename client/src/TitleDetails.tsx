@@ -13,7 +13,7 @@ export function TitleDetails({ title }: { title: Title }) {
 
   const genres = genresOf(title, lang);
   const overview = overviewOf(title, lang);
-  const meta = [genres, title.platforms ? `${t.details.platforms}: ${title.platforms}` : ""].filter(Boolean).join(" · ");
+  const meta = [title.franchise ? `${t.details.franchise}: ${title.franchise}` : "", genres, title.platforms ? `${t.details.platforms}: ${title.platforms}` : ""].filter(Boolean).join(" · ");
 
   if (!meta && !overview) return null;
 

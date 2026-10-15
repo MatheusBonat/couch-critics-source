@@ -2,6 +2,18 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.6.0] - 2026-10-15
+
+### Added
+- **Rate series by season**: besides the overall score and the score per episode, every season of a series now has its own score (with comment, Peak and Rock Bottom, spoiler and reactions, like any other rating). Open **Rate by season and episode** and the first row of each season is "Whole season". The season average appears in the season picker and the season scores are shown above the episodes. A season score does not change the average of the episodes or of the series. Only series from TMDB have seasons (anime keep rating by episode)
+- **Franchise**: every title can now have a franchise, like "Harry Potter" or "The Legend of Zelda". Movies get it from the TMDB collection and games from the IGDB franchise; on any title (series, books, anime and songs too) the person who added it, or an admin, can write, change or clear it ("Set franchise" / "Change franchise" in the open title). Movies and games already in the community get their franchise by themselves, little by little, when the TMDB and IGDB keys are set. A franchise written by hand is never replaced by the one from the source
+- **Filter by franchise** in the list (a drop-down that only appears when the category has franchises, with the number of titles and "No franchise"), and the search box now also finds a title by its franchise
+- **Sort by name** (A to Z, in the language of the person, ignoring accents and capital letters, with "Rocky 2" before "Rocky 10")
+- **Statistics by genre**: a new tab with the genres each person watched (rated or marked as watched), with count, bar and average score. Choose whose (you, the members or everyone) and the category
+
+### Changed
+- **Statistics** and **Hall of Fame** moved from the footer to the top bar, next to Ratings, To watch / play and Party Night
+
 ## [2.5.1] - 2026-10-14
 
 ### Fixed

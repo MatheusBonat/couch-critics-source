@@ -35,6 +35,7 @@ import {
   TitleRateResponse,
   TitleSearchRequest,
   TitleSearchResponse,
+  TitleFranchiseRequest,
   TitleUpdateRequest,
   TitleUpdateResponse,
   WatchStatus,
@@ -62,10 +63,11 @@ import { musicBrainz } from "./providers/musicbrainz";
 import { IgdbCredentials, forgetIgdbTokens, igdbCheck, igdbDetails, igdbSearch } from "./providers/igdb";
 
 // Uma página de episódios: o que vem depois de afterNumber, até o orçamento de bytes (sempre pelo menos um episódio).
-export function pageOfEpisodes(episodes: Episode[], afterNumber: number): { episodes: Episode[]; hasMore: boolean; nextAfterNumber: number } {
+// reservedBytes: o que já vai na mesma mensagem fora da lista (as notas da temporada inteira, na primeira página).
+export function pageOfEpisodes(episodes: Episode[], afterNumber: number, reservedBytes = 0): { episodes: Episode[]; hasMore: boolean; nextAfterNumber: number } {
   const rest = afterNumber > 0 ? episodes.filter((episode) => episode.number > afterNumber) : episodes;
   const page: Episode[] = [];
-  let bytes = 0;
+  let bytes = reservedBytes;
   for (const episode of rest) {
     const size = Episode.toBinary(episode).length + 8;
     if (page.length > 0 && bytes + size > tuning.episodePageBytes) break;
@@ -77,6 +79,7 @@ export function pageOfEpisodes(episodes: Episode[], afterNumber: number): { epis
 }
 
 const maxNameLength = 120;
+const maxFranchiseLength = 60;
 const maxCommentLength = 300;
 const firstYear = 1888;
 const maxScore = 10;
@@ -464,7 +467,7 @@ export class TitleService extends TitleServiceBase {
         imdbId: "",
         source: catalog.source,
         creator: item.creator.slice(0, maxNameLength),
-        details: { overviewPt: "", overviewEn: item.overview, genresPt: "", genresEn: item.genres, platforms: "" },
+        details: { overviewPt: "", overviewEn: item.overview, genresPt: "", genresEn: item.genres, platforms: "", franchise: "" },
       },
       client.userId,
     );
@@ -547,7 +550,7 @@ export class TitleService extends TitleServiceBase {
         imdbId: "",
         source: "igdb",
         // O IGDB só tem resumo em inglês.
-        details: { overviewPt: "", overviewEn: game.summary, genresPt: "", genresEn: game.genres, platforms: game.platforms },
+        details: { overviewPt: "", overviewEn: game.summary, genresPt: "", genresEn: game.genres, platforms: game.platforms, franchise: game.franchise },
       },
       client.userId,
     );
@@ -612,6 +615,7 @@ export class TitleService extends TitleServiceBase {
           genresPt: portuguese.genres,
           genresEn: english.genres,
           platforms: "",
+          franchise: english.franchise,
         },
       },
       client.userId,
@@ -680,6 +684,22 @@ export class TitleService extends TitleServiceBase {
     return { title: updated };
   }
 
+  // A franquia de qualquer título (também os do TMDB e do IGDB): quem adicionou ou um admin escreve, troca ou limpa.
+  async setFranchise(request: TitleFranchiseRequest, client: Client): Promise<TitleUpdateResponse> {
+    const title = await requireTitle(request.id);
+    if (title.createdBy !== client.userId && !(await adminState(client.userId)).isAdmin) {
+      fail(TitleError.FORBIDDEN, "Only the person who added a title, or an app admin, can change its franchise.");
+    }
+
+    const franchise = request.franchise.trim().replace(/\s+/g, " ");
+    if (franchise.length > maxFranchiseLength) fail(TitleError.INVALID_NAME, "The franchise can have up to " + maxFranchiseLength + " characters.");
+
+    await titleRepository.setFranchise(title.id, franchise);
+    const updated = await requireTitle(title.id);
+    this.broadcastUpdated({ title: updated }, "all", client);
+    return { title: updated };
+  }
+
   // Moderação: um admin apaga o texto de um comentário. A nota da pessoa continua.
   async removeComment(request: CommentRemoveRequest, client: Client): Promise<CommentRemoveResponse> {
     if (!(await adminState(client.userId)).isAdmin) fail(TitleError.NOT_ADMIN, "Only app admins can remove comments.");
@@ -692,10 +712,11 @@ export class TitleService extends TitleServiceBase {
       return { title };
     }
 
-    if (!(await episodeRepository.getEpisode(request.titleId, request.season, request.number))) {
+    if (!(await this.episodeTarget(request.titleId, request.season, request.number))) {
       fail(TitleError.EPISODE_NOT_FOUND, "This episode does not exist.");
     }
-    await episodeRepository.removeComment(request.titleId, request.season, request.number, request.userId);
+    if (request.number === 0) await episodeRepository.removeSeasonComment(request.titleId, request.season, request.userId);
+    else await episodeRepository.removeComment(request.titleId, request.season, request.number, request.userId);
     return this.episodeChanged(request.titleId, request.season, request.number, client);
   }
 
@@ -715,7 +736,7 @@ export class TitleService extends TitleServiceBase {
       return { title: updated };
     }
 
-    const episode = await episodeRepository.getEpisode(title.id, request.season, request.number);
+    const episode = await this.episodeTarget(title.id, request.season, request.number);
     if (!episode || !episode.ratings.some((rating) => rating.userId === request.ratingUserId)) {
       fail(TitleError.EPISODE_NOT_FOUND, "This rating no longer exists.");
     }
@@ -784,11 +805,15 @@ export class TitleService extends TitleServiceBase {
       const season = seasons.find((item) => item.number === request.season)?.number ?? seasons[0].number;
       if (token) await this.ensureEpisodes(title, season, token);
 
-      const page = pageOfEpisodes(await episodeRepository.listEpisodes(title.id, season), request.afterNumber);
+      // As notas da temporada inteira vão na primeira página (e descontam do orçamento de bytes dela).
+      const summary = request.afterNumber > 0 ? undefined : await episodeRepository.seasonSummary(title.id, season);
+      const page = pageOfEpisodes(await episodeRepository.listEpisodes(title.id, season), request.afterNumber, summary ? Episode.toBinary(summary).length + 8 : 0);
+      const aggregates = await episodeRepository.seasonAggregates(title.id);
       return {
         status: SearchStatus.OK,
-        seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount })),
+        seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount, rated: aggregates.get(item.number)?.rated ?? 0, avg: aggregates.get(item.number)?.avg ?? 0 })),
         season,
+        seasonSummary: summary,
         ...page,
       };
     } catch (error) {
@@ -807,7 +832,7 @@ export class TitleService extends TitleServiceBase {
       const page = pageOfEpisodes(await episodeRepository.listEpisodes(title.id, season), afterNumber);
       return {
         status: SearchStatus.OK,
-        seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount })),
+        seasons: seasons.map((item) => ({ number: item.number, episodeCount: item.episodeCount, rated: 0, avg: 0 })),
         season,
         ...page,
       };
@@ -860,31 +885,43 @@ export class TitleService extends TitleServiceBase {
   async rateEpisode(request: EpisodeRateRequest, client: Client): Promise<EpisodeRateResponse> {
     const { score, comment } = checkRating(request.score, request.tier, request.comment);
 
-    if (!(await episodeRepository.getEpisode(request.titleId, request.season, request.number))) {
+    if (!(await this.episodeTarget(request.titleId, request.season, request.number))) {
       fail(TitleError.EPISODE_NOT_FOUND, "This episode does not exist.");
     }
 
-    await episodeRepository.setRating(request.titleId, request.season, request.number, client.userId, score, comment, request.tier, request.spoiler);
+    if (request.number === 0) await episodeRepository.setSeasonRating(request.titleId, request.season, client.userId, score, comment, request.tier, request.spoiler);
+    else await episodeRepository.setRating(request.titleId, request.season, request.number, client.userId, score, comment, request.tier, request.spoiler);
     return this.episodeChanged(request.titleId, request.season, request.number, client);
   }
 
   async clearEpisodeRating(request: EpisodeClearRatingRequest, client: Client): Promise<EpisodeClearRatingResponse> {
-    if (!(await episodeRepository.getEpisode(request.titleId, request.season, request.number))) {
+    if (!(await this.episodeTarget(request.titleId, request.season, request.number))) {
       fail(TitleError.EPISODE_NOT_FOUND, "This episode does not exist.");
     }
 
-    await episodeRepository.clearRating(request.titleId, request.season, request.number, client.userId);
+    if (request.number === 0) await episodeRepository.clearSeasonRating(request.titleId, request.season, client.userId);
+    else await episodeRepository.clearRating(request.titleId, request.season, request.number, client.userId);
     await reactionRepository.clearForRating(request.titleId, request.season, request.number, client.userId);
     return this.episodeChanged(request.titleId, request.season, request.number, client);
   }
 
-  // Avisa todo mundo: o episódio mudou e a média de episódios da série também.
+  // O que se pode avaliar com (título, temporada, número): um episódio que existe ou, com number 0, a temporada inteira.
+  // Temporada inteira só em série (as "temporadas" do anime são páginas de 50 episódios, não temporadas de verdade).
+  private async episodeTarget(titleId: number, season: number, number: number): Promise<Episode | null> {
+    if (number !== 0) return episodeRepository.getEpisode(titleId, season, number);
+
+    const title = await requireTitle(titleId);
+    if (title.kind !== TitleKind.SERIES || !(await episodeRepository.hasSeason(titleId, season))) return null;
+    return episodeRepository.seasonSummary(titleId, season);
+  }
+
+  // Avisa todo mundo: o episódio mudou e a média de episódios da série também (nota de temporada não mexe na média de episódios).
   private async episodeChanged(titleId: number, season: number, number: number, client: Client) {
-    const episode = (await episodeRepository.getEpisode(titleId, season, number))!;
+    const episode = (await this.episodeTarget(titleId, season, number))!;
     const title = await requireTitle(titleId);
 
     this.broadcastEpisodeUpdated({ titleId, episode }, "all", client);
-    this.broadcastUpdated({ title }, "all", client);
+    if (number !== 0) this.broadcastUpdated({ title }, "all", client);
     return { episode, title };
   }
 
@@ -1164,14 +1201,14 @@ export class TitleService extends TitleServiceBase {
 
           if (item.kind === TitleKind.GAME) {
             const game = await igdbDetails(item.externalId, igdb!);
-            details = { overviewPt: "", overviewEn: game.summary, genresPt: "", genresEn: game.genres, platforms: game.platforms };
+            details = { overviewPt: "", overviewEn: game.summary, genresPt: "", genresEn: game.genres, platforms: game.platforms, franchise: game.franchise };
           } else {
             const kind = tmdbKindOf(item.kind)!;
             const [english, portuguese] = await Promise.all([
               tmdbDetails(kind, item.externalId, "en", tmdbToken!),
               tmdbDetails(kind, item.externalId, "pt", tmdbToken!),
             ]);
-            details = { overviewPt: portuguese.overview, overviewEn: english.overview, genresPt: portuguese.genres, genresEn: english.genres, platforms: "" };
+            details = { overviewPt: portuguese.overview, overviewEn: english.overview, genresPt: portuguese.genres, genresEn: english.genres, platforms: "", franchise: english.franchise };
           }
 
           await titleRepository.updateDetails(item.id, details, Date.now());

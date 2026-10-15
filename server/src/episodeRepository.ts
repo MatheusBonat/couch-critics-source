@@ -36,9 +36,22 @@ interface EpisodeRatingRow {
   spoiler: number;
 }
 
+// Nota da temporada inteira (a nota de cada episódio fica em episode_ratings).
+interface SeasonRatingRow {
+  title_id: number;
+  season: number;
+  user_id: string;
+  score: number;
+  comment: string;
+  tier: number;
+  rated_at: number;
+  spoiler: number;
+}
+
 const seasonsTable = "seasons";
 const episodesTable = "episodes";
 const episodeRatingsTable = "episode_ratings";
+const seasonRatingsTable = "season_ratings";
 
 export interface CachedSeason {
   number: number;
@@ -56,7 +69,7 @@ export interface EpisodeData {
   tmdbVotes: number;
 }
 
-function toRating(row: EpisodeRatingRow, reactions: Reaction[] = []): Rating {
+function toRating(row: Omit<EpisodeRatingRow, "number">, reactions: Reaction[] = []): Rating {
   return {
     userId: row.user_id,
     score: row.score,
@@ -160,6 +173,54 @@ export class EpisodeRepository {
     return rows.map((row) => toEpisode(row, ratings.filter((rating) => rating.number === row.number), reactions));
   }
 
+  public async hasSeason(titleId: number, season: number): Promise<boolean> {
+    return (await knex<SeasonRow>(seasonsTable).where({ title_id: titleId, season }).first()) !== undefined;
+  }
+
+  // A temporada inteira como um "episódio" de número 0: sem nome nem data, só com as notas dos membros (e as reações a elas).
+  public async seasonSummary(titleId: number, season: number): Promise<Episode> {
+    const rows = await knex<SeasonRatingRow>(seasonRatingsTable).where({ title_id: titleId, season }).orderBy("rated_at", "asc");
+    const reactions = await reactionRepository.forEpisodes(titleId, season);
+
+    return {
+      season,
+      number: 0,
+      namePt: "",
+      nameEn: "",
+      airDate: "",
+      imdbRating: 0,
+      tmdbRating: 0,
+      tmdbVotes: 0,
+      ratings: rows.map((row) => toRating(row, reactions.get(`0:${row.user_id}`))),
+    };
+  }
+
+  // Quantas notas de temporada cada temporada do título tem e a média delas.
+  public async seasonAggregates(titleId: number): Promise<Map<number, { rated: number; avg: number }>> {
+    const rows = (await knex.raw(`select season, count(*) as rated, avg(score) as avg from ${seasonRatingsTable} where title_id = ? group by season`, [titleId])) as {
+      season: number;
+      rated: number;
+      avg: number;
+    }[];
+    return new Map(rows.map((row) => [row.season, { rated: row.rated, avg: row.avg }]));
+  }
+
+  public async setSeasonRating(titleId: number, season: number, userId: string, score: number, comment: string, tier: RatingTier, spoiler = false): Promise<void> {
+    await knex<SeasonRatingRow>(seasonRatingsTable)
+      .insert({ title_id: titleId, season, user_id: userId, score, comment, tier, rated_at: Date.now(), spoiler: spoiler && comment !== "" ? 1 : 0 })
+      .onConflict(["title_id", "season", "user_id"])
+      .merge();
+  }
+
+  // Apaga só o texto do comentário (e o spoiler); a nota fica.
+  public async removeSeasonComment(titleId: number, season: number, userId: string): Promise<void> {
+    await knex<SeasonRatingRow>(seasonRatingsTable).where({ title_id: titleId, season, user_id: userId }).update({ comment: "", spoiler: 0 });
+  }
+
+  public async clearSeasonRating(titleId: number, season: number, userId: string): Promise<void> {
+    await knex<SeasonRatingRow>(seasonRatingsTable).where({ title_id: titleId, season, user_id: userId }).del();
+  }
+
   public async getEpisode(titleId: number, season: number, number: number): Promise<Episode | null> {
     const row = await knex<EpisodeRow>(episodesTable).where({ title_id: titleId, season, number }).first();
     if (!row) return null;
@@ -212,6 +273,7 @@ export async function episodeSummaries(titleIds?: number[]): Promise<Map<number,
 // Usada ao remover um título: leva junto temporadas, episódios e notas de episódios.
 export async function deleteEpisodesOf(trx: Knex.Transaction, titleId: number): Promise<void> {
   await trx(episodeRatingsTable).where({ title_id: titleId }).del();
+  await trx(seasonRatingsTable).where({ title_id: titleId }).del();
   await trx(episodesTable).where({ title_id: titleId }).del();
   await trx(seasonsTable).where({ title_id: titleId }).del();
 }
@@ -256,6 +318,20 @@ export async function initializeEpisodes(): Promise<void> {
       table.bigInteger("rated_at").notNullable().defaultTo(0);
       table.integer("spoiler").notNullable().defaultTo(0);
       table.primary(["title_id", "season", "number", "user_id"]);
+    });
+  }
+
+  if (!(await knex.schema.hasTable(seasonRatingsTable))) {
+    await knex.schema.createTable(seasonRatingsTable, (table) => {
+      table.integer("title_id").notNullable();
+      table.integer("season").notNullable();
+      table.text("user_id").notNullable();
+      table.double("score").notNullable();
+      table.text("comment").notNullable().defaultTo("");
+      table.integer("tier").notNullable().defaultTo(0);
+      table.bigInteger("rated_at").notNullable().defaultTo(0);
+      table.integer("spoiler").notNullable().defaultTo(0);
+      table.primary(["title_id", "season", "user_id"]);
     });
   }
 

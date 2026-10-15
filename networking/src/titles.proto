@@ -131,6 +131,9 @@ message Title {
   repeated WatchEntry statuses = 23;
   // Autor (livros) ou artista (músicas). Vazio nas outras categorias.
   string creator = 24;
+  // Franquia (série de filmes ou de jogos, como "Harry Potter"): vem do TMDB ou do IGDB quando eles têm, e quem adicionou o
+  // título (ou um admin) pode escrever ou trocar. Vazio = sem franquia.
+  string franchise = 25;
 }
 
 message TitleCreateRequest {
@@ -171,6 +174,12 @@ message TitleUpdateRequest {
 
 message TitleUpdateResponse {
   Title title = 1;
+}
+
+// Define a franquia de qualquer título (vazio tira). Só quem adicionou o título ou um admin.
+message TitleFranchiseRequest {
+  uint32 id = 1;
+  string franchise = 2;
 }
 
 // Admin remove o comentário de alguém (a nota fica). season 0 = comentário do título.
@@ -279,6 +288,9 @@ message TitleAddFromSourceResponse {
 message SeasonInfo {
   uint32 number = 1;
   uint32 episode_count = 2;
+  // Quantas pessoas deram nota à temporada inteira e a média dessas notas (0 e 0 = ninguém ainda).
+  uint32 rated = 3;
+  double avg = 4;
 }
 
 message Episode {
@@ -314,8 +326,11 @@ message EpisodeListResponse {
   // peça de novo com after_number = next_after_number.
   bool has_more = 5;
   uint32 next_after_number = 6;
+  // As notas dos membros para a temporada inteira, como um "episódio" de número 0. Vem só na primeira página, e só nas séries.
+  Episode season_summary = 7;
 }
 
+// Nas mensagens de nota de episódio, number = 0 quer dizer a temporada inteira (só séries do TMDB).
 message EpisodeRateRequest {
   uint32 title_id = 1;
   uint32 season = 2;
@@ -422,6 +437,7 @@ service TitleService {
   rpc GetSettings(SettingsGetRequest) returns (SettingsGetResponse);
   rpc SaveSettings(SettingsSaveRequest) returns (SettingsSaveResponse);
   rpc Update(TitleUpdateRequest) returns (TitleUpdateResponse);
+  rpc SetFranchise(TitleFranchiseRequest) returns (TitleUpdateResponse);
   rpc RemoveComment(CommentRemoveRequest) returns (CommentRemoveResponse);
   rpc React(ReactRequest) returns (ReactResponse);
   rpc SetWatchStatus(WatchStatusRequest) returns (WatchStatusResponse);

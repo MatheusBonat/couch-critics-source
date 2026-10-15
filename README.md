@@ -37,7 +37,7 @@ A free, open source [Root](https://www.rootapp.com) app. Everyone rates, everyon
 - **Party Night**: plan a movie or game night. Pick 2 to 8 titles, set a voting deadline, everyone votes (votes are public) and says if they are coming. The winner becomes a planned night, and Root notifications remind the ones who are going
 
 **Know your group**
-- Who thinks like you, the titles that split the group, your year in ratings, and a Hall of Fame and Shame
+- Who thinks like you, the titles that split the group, your year in ratings, the genres each person watched, and a Hall of Fame and Shame
 
 **Built for communities**
 - English and Portuguese, light and dark themes (it follows the Root theme), narrow screens, and live updates for every member

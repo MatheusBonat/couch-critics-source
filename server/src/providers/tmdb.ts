@@ -18,6 +18,8 @@ export interface TmdbDetails extends TmdbSearchItem {
   // Sinopse e gêneros (separados por vírgula) no idioma pedido.
   overview: string;
   genres: string;
+  // Franquia: a coleção do filme no TMDB ("Harry Potter Collection" vira "Harry Potter"). Vazia em série e em filme sem coleção.
+  franchise: string;
 }
 
 const languageCode: Record<Lang, string> = { pt: "pt-BR", en: "en-US" };
@@ -112,7 +114,17 @@ export async function tmdbDetails(kind: TmdbKind, id: string, lang: Lang, token:
     imdbId: text(body.imdb_id) || text(body.external_ids?.imdb_id),
     overview: text(body.overview).trim(),
     genres: genres.join(", "),
+    franchise: kind === "movie" ? franchiseOf(text(body.belongs_to_collection?.name)) : "",
   };
+}
+
+// "The Hunger Games Collection" / "Harry Potter - Coleção" -> "The Hunger Games" / "Harry Potter".
+export function franchiseOf(collection: string): string {
+  return collection
+    .trim()
+    .replace(/\s*[-–:]?\s*(collection|coleção|colecao|coleccion|colección|saga)$/i, "")
+    .trim()
+    .slice(0, 60);
 }
 
 // Só confere se a chave é aceita.

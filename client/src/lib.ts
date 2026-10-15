@@ -34,7 +34,7 @@ export function sourceNameOf(kind: TitleKind): string {
   }
 }
 
-export type SortKey = "recent" | "best" | "most" | "yearNew" | "yearOld";
+export type SortKey = "recent" | "best" | "most" | "yearNew" | "yearOld" | "name";
 
 export function average(title: Title): number | null {
   if (title.ratings.length === 0) return null;
@@ -63,10 +63,13 @@ export function searchKey(text: string): string {
     .trim();
 }
 
-export function sortTitles(titles: Title[], sort: SortKey): Title[] {
+export function sortTitles(titles: Title[], sort: SortKey, lang: Lang = "en"): Title[] {
   const copy = [...titles];
 
   if (sort === "recent") return copy.sort((a, b) => b.id - a.id);
+
+  // A a Z pelo nome no idioma da pessoa, sem ligar para acento nem maiúscula ("Rocky 2" vem antes de "Rocky 10").
+  if (sort === "name") return copy.sort((a, b) => titleName(a, lang).localeCompare(titleName(b, lang), lang, { sensitivity: "base", numeric: true }) || b.id - a.id);
 
   if (sort === "yearNew" || sort === "yearOld") {
     // Título sem ano (0) vai para o fim nas duas ordens.
@@ -192,10 +195,40 @@ export function titleName(title: Title, lang: Lang): string {
   return preferred || other || title.name;
 }
 
-// A busca da lista acha por qualquer um dos nomes, com ou sem acento.
+// A busca da lista acha por qualquer um dos nomes ou pela franquia, com ou sem acento.
 export function titleMatches(title: Title, needle: string): boolean {
   if (needle === "") return true;
-  return [title.name, title.namePt, title.nameEn].some((name) => name !== "" && searchKey(name).includes(needle));
+  return [title.name, title.namePt, title.nameEn, title.franchise].some((name) => name !== "" && searchKey(name).includes(needle));
+}
+
+// Valor do filtro de franquia para "só os que não têm franquia" (vazio = todas).
+export const noFranchise = "*none";
+
+export interface FranchiseOption {
+  name: string;
+  count: number;
+}
+
+// As franquias dos títulos dados (sem repetir "marvel" e "Marvel"), da que tem mais títulos para a que tem menos.
+export function franchiseOptions(titles: Title[]): FranchiseOption[] {
+  const byKey = new Map<string, FranchiseOption>();
+  for (const title of titles) {
+    const name = title.franchise.trim();
+    if (name === "") continue;
+    const key = searchKey(name);
+    const entry = byKey.get(key) ?? { name, count: 0 };
+    entry.count += 1;
+    byKey.set(key, entry);
+  }
+  return [...byKey.values()].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+}
+
+// O título está na franquia escolhida? "" = qualquer um; noFranchise = os que não têm franquia.
+export function inFranchise(title: Title, franchise: string): boolean {
+  if (franchise === "") return true;
+  const own = title.franchise.trim();
+  if (franchise === noFranchise) return own === "";
+  return own !== "" && searchKey(own) === searchKey(franchise);
 }
 
 // Capa no idioma da pessoa, com a do outro idioma como reserva.

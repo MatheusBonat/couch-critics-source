@@ -21,6 +21,8 @@ export interface IgdbGame {
   summary: string;
   genres: string;
   platforms: string;
+  // Franquia do jogo (a primeira franquia do IGDB; se não tiver, a primeira coleção). Vazia na busca e quando o IGDB não tem.
+  franchise: string;
 }
 
 // O IGDB recusou a consulta em si (campo ou filtro que ele não conhece), e não a chave.
@@ -113,7 +115,8 @@ function text(value: unknown): string {
 }
 
 const fields = "fields name,first_release_date,cover.image_id,alternative_names.name,alternative_names.comment;";
-const detailFields = fields.replace(/;$/, ",summary,genres.name,platforms.abbreviation,platforms.name;");
+const basicDetailFields = fields.replace(/;$/, ",summary,genres.name,platforms.abbreviation,platforms.name;");
+const detailFields = basicDetailFields.replace(/;$/, ",franchises.name,collections.name;");
 
 // Nomes de uma lista aninhada do IGDB, sem repetir. Plataformas usam a sigla quando há (PS5, PC, NSW).
 function names(list: unknown, preferShort = false): string {
@@ -151,6 +154,7 @@ function toGame(raw: Record<string, any>): IgdbGame | null {
     summary: text(raw.summary).trim(),
     genres: names(raw.genres),
     platforms: names(raw.platforms, true),
+    franchise: (names(raw.franchises).split(", ")[0] || names(raw.collections).split(", ")[0] || "").slice(0, 60),
   };
 }
 
@@ -186,7 +190,13 @@ export async function igdbDetails(id: string, creds: IgdbCredentials): Promise<I
     rows = await call("/games", `${detailFields} where id = ${id}; limit 1;`, creds);
   } catch (error) {
     if (!(error instanceof IgdbBadQuery)) throw error;
-    rows = await call("/games", `${fields} where id = ${id}; limit 1;`, creds);
+    try {
+      // Sem os campos de franquia: o jogo entra com resumo, gêneros e plataformas, sem franquia.
+      rows = await call("/games", `${basicDetailFields} where id = ${id}; limit 1;`, creds);
+    } catch (second) {
+      if (!(second instanceof IgdbBadQuery)) throw second;
+      rows = await call("/games", `${fields} where id = ${id}; limit 1;`, creds);
+    }
   }
   const game = rows.length > 0 ? toGame(rows[0]) : null;
   if (!game) throw new ProviderError("not_found", "IGDB does not know this game.");

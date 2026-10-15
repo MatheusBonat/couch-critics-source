@@ -3,6 +3,7 @@ import { UserProfile } from "@rootsdk/client-app";
 import { Night, Rating, RatingTier, Title, TitleKind, WatchStatus } from "@notas-app/gen-shared";
 import { titleServiceClient } from "@notas-app/gen-client";
 import { EditTitleForm } from "./EditTitleForm";
+import { FranchiseForm } from "./FranchiseForm";
 import { EpisodesPanel } from "./EpisodesPanel";
 import { Poster } from "./Poster";
 import { RatingEditor } from "./RatingEditor";
@@ -32,13 +33,16 @@ interface Props {
   showWatch?: boolean;
   // Na lista "Para ver / jogar": quem está usando já viu, jogou, leu ou ouviu este título (a linha fica esmaecida, no fim da lista).
   done?: boolean;
+  // Franquias que a comunidade já tem, para sugerir ao escrever a franquia do título.
+  franchiseNames?: string[];
 }
 
-export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled, showWatch = false, done = false }: Props) {
+export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChanged, onDeleted, onError, wantedBy, scheduled, showWatch = false, done = false, franchiseNames = [] }: Props) {
   const { t, lang } = useI18n();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [editingFranchise, setEditingFranchise] = useState(false);
 
   const avg = average(title);
   const name = titleName(title, lang);
@@ -206,7 +210,19 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
             />
           )}
 
-          {canManage && !editing && (
+          {editingFranchise && (
+            <FranchiseForm
+              title={title}
+              suggestions={franchiseNames}
+              onSaved={(updated) => {
+                onChanged(updated);
+                setEditingFranchise(false);
+              }}
+              onCancel={() => setEditingFranchise(false)}
+            />
+          )}
+
+          {canManage && !editing && !editingFranchise && (
             <div className="danger-zone">
               {confirmingDelete ? (
                 <>
@@ -232,6 +248,9 @@ export function TitleItem({ title, me, isAdmin, open, profiles, onToggle, onChan
                       {t.edit.open}
                     </button>
                   )}
+                  <button type="button" className="button-quiet" onClick={() => setEditingFranchise(true)}>
+                    {title.franchise ? t.franchise.change : t.franchise.set}
+                  </button>
                   <button type="button" className="button-quiet" onClick={() => setConfirmingDelete(true)}>
                     {t.removeTitle}
                   </button>
