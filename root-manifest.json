@@ -1,6 +1,6 @@
 {
   "id": "ADHNuFPEiQmHeHwPplhEyQ",
-  "version": "2.6.0",
+  "version": "2.6.1",
   "package": {
     "client": {
       "deploy": "client/dist"

@@ -2,6 +2,11 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.6.1] - 2026-10-15
+
+### Changed
+- Same code as 2.6.0, sent to Root again with a new version number (the upload of 2.6.0 ended with a gateway timeout, and Root does not accept the same number twice)
+
 ## [2.6.0] - 2026-10-15
 
 ### Added
