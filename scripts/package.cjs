@@ -9,8 +9,10 @@
 // Então o pacote sai de uma pasta de montagem temporária com SÓ o que o servidor usa:
 //   - o manifesto, server/dist, networking/gen/server e client/dist;
 //   - em node_modules, apenas as dependências de produção do servidor (calculadas a partir de server/package.json e do
-//     SDK do servidor, seguindo as dependências de cada pacote). O sqlite3 e o @rootsdk/dev-tools ficam de fora, como o
-//     próprio empacotador do Root já faz: o Root fornece o sqlite3 no servidor dele.
+//     SDK do servidor, seguindo as dependências de cada pacote). A pasta do próprio sqlite3 e o @rootsdk/dev-tools ficam de
+//     fora, como o empacotador do Root já faz (o Root fornece o sqlite3 no servidor dele), MAS as dependências do sqlite3
+//     (bindings etc.) entram: o sqlite3 do Root as carrega do node_modules do pacote. Sem elas o servidor não sobe e o app
+//     fica indisponível.
 // No fim, confere o conteúdo do pacote (sem .env nem banco de dados) e apaga a pasta temporária.
 const fs = require("fs");
 const os = require("os");
@@ -20,8 +22,10 @@ const { spawnSync } = require("child_process");
 const root = path.resolve(__dirname, "..");
 const output = path.join(root, "rootapp.pkg");
 const forbidden = /(^|\/)\.env(\.|$)|\.sqlite3?(-journal|-wal|-shm)?$/;
-// O empacotador do Root exclui estes dois do node_modules; os dois ficam fora do cálculo também.
-const providedByRoot = new Set(["sqlite3", "@rootsdk/dev-tools"]);
+// O empacotador do Root exclui estes dois do node_modules. O sqlite3 é percorrido (para levar as dependências dele) e só a
+// pasta dele é tirada da montagem; o @rootsdk/dev-tools nem é percorrido.
+const providedByRoot = new Set(["@rootsdk/dev-tools"]);
+const leftOutOfStage = new Set(["sqlite3"]);
 const runtimeRoots = ["@rootsdk/server-app", "@notas-app/gen-server", "@notas-app/gen-shared"];
 
 function readJson(file) {
@@ -78,7 +82,7 @@ try {
     const inside = !relative.startsWith("..");
     // Dentro de node_modules vale o primeiro nível (ou @escopo/nome); atalhos de workspace (@notas-app/*) valem pelo nome.
     const top = inside ? relative.split("/").slice(0, relative.startsWith("@") ? 2 : 1).join("/") : name;
-    if (copied.has(top)) continue;
+    if (copied.has(top) || leftOutOfStage.has(top)) continue;
     copied.add(top);
     fs.cpSync(inside ? path.join(modulesRoot, top) : real, path.join(stage, "node_modules", top), { recursive: true, dereference: true, filter: inside ? undefined : notNodeModules });
   }

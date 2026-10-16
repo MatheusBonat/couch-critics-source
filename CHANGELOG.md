@@ -2,6 +2,11 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.6.3] - 2026-10-16
+
+### Fixed
+- **The app did not start in Root with version 2.6.2.** The slim upload package of 2.6.2 left out the libraries that `sqlite3` loads when it starts (`bindings` and `file-uri-to-path`), so the server stopped at startup and the app stayed unavailable. The package now includes the dependencies of `sqlite3` (the `sqlite3` folder itself is still left out, because Root provides it). No change in the app itself: same code as 2.6.0
+
 ## [2.6.2] - 2026-10-16
 
 ### Fixed
