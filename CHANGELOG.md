@@ -2,6 +2,14 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.6.2] - 2026-10-16
+
+### Fixed
+- **The app could not be updated in Root (it stayed unavailable).** The upload package carried the whole `node_modules` folder (about 13,000 files and 59 MB), including development tools, and the Root portal took longer than its own time limit to process it (HTTP 524). Versions 2.6.0 and 2.6.1 were created in Root but kept the old client, so the app did not start. The package is now built from a clean staging folder with only what the server needs at run time (2,459 files, 3.7 MB) and uploads in a few seconds. No change in the app itself: same code as 2.6.0
+
+### Changed
+- `npm run package` (`scripts/package.cjs`) now builds that slim package
+
 ## [2.6.1] - 2026-10-15
 
 ### Changed
