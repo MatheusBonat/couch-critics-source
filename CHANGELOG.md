@@ -2,6 +2,11 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.6.6] - 2026-10-16
+
+### Added
+- **Startup log.** The server now writes each step of its startup (loading, database, settings, nights, covers, services) and any unhandled error to the server output and to the app log that community admins see in Root, plus a line when the screen asks for the title list. It is there to find out how far the server gets when the app is unavailable in a community
+
 ## [2.6.5] - 2026-10-16
 
 ### Changed

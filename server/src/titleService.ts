@@ -50,6 +50,7 @@ import { CachedSeason, EpisodeData, episodeRepository } from "./episodeRepositor
 import { deleteSetting, getSetting, setSetting, settingKeys } from "./settingsRepository";
 import { adminState, claimAdmin } from "./access";
 import { warnAdmins } from "./communityLog";
+import { trace } from "./startupLog";
 import { enabledKinds, optionalKinds } from "./kinds";
 import { nightService } from "./nightService";
 import { rememberCovers } from "./coverAccess";
@@ -308,6 +309,7 @@ export class TitleService extends TitleServiceBase {
 
     // O trabalho em segundo plano começa quando a tela pede a primeira página.
     if (!request.beforeId) {
+      trace(`a tela pediu a lista de títulos (${titles.length} títulos na primeira página)`);
       void this.refreshImdbRatings();
       this.keepInBackground(this.fillMissingDetails());
     }
