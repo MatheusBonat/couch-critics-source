@@ -3,7 +3,7 @@ import { CommunityAppLogType, rootServer } from "@rootsdk/server-app";
 // Rastro da inicialização do servidor, para saber até onde ele chega quando o app fica indisponível.
 // Cada linha vai para a saída do servidor (console) e para o log do app dentro do Root (quem tem "Manage Apps" vê).
 // As linhas são gravadas em ordem e sem esperar: gravar o log nunca pode travar nem derrubar o servidor.
-export const buildLabel = "2.6.6 (log de inicialização)";
+export const buildLabel = "2.6.7 (log de inicialização)";
 
 let chain: Promise<unknown> = Promise.resolve();
 

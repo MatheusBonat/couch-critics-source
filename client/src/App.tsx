@@ -37,6 +37,7 @@ import {
   countWanted,
   watchStatusOf,
   loadAllTitles,
+  retryRead,
   TitleEvent,
 } from "./lib";
 
@@ -116,7 +117,7 @@ const App = () => {
   const load = () => {
     setLoadFailure(null);
     arrivedDuringLoad.current = [];
-    loadAllTitles((beforeId) => titleServiceClient.list({ beforeId }))
+    loadAllTitles((beforeId) => retryRead(() => titleServiceClient.list({ beforeId })))
       .then((all) => {
         setTitles(applyTitleEvents(all, arrivedDuringLoad.current ?? []));
       })
@@ -134,8 +135,7 @@ const App = () => {
   const loadNights = () => {
     setNightsFailed(false);
     nightsArrivedDuringLoad.current = [];
-    nightServiceClient
-      .list({ beforeId: 0 })
+    retryRead(() => nightServiceClient.list({ beforeId: 0 }))
       .then((response) => {
         let loaded = response.nights;
         for (const change of nightsArrivedDuringLoad.current ?? []) {
@@ -192,8 +192,7 @@ const App = () => {
   useEffect(() => setLimit(pageSize), [kindIndex, query, sort, filter]);
 
   const loadSettings = () => {
-    titleServiceClient
-      .getSettings({})
+    retryRead(() => titleServiceClient.getSettings({}))
       .then((response) =>
         setSettings({
           isAdmin: response.isAdmin,

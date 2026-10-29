@@ -53,10 +53,19 @@ async function onStarting(state: RootAppStartState) {
   trace("onStarting: terminou, o servidor está pronto");
 }
 
+// O Root desliga o app de propósito ("Hub is disconnecting" ou SIGTERM, quando troca a máquina ou reinicia o
+// serviço): para o varredor das noites e fecha o banco antes de sair, para nenhuma gravação ficar pela metade.
+// O SDK espera esta função por até 15 s e depois sai de qualquer jeito.
+async function onStopping() {
+  trace("onStopping: o Root pediu para desligar; parando o varredor e fechando o banco");
+  nightService.stopSweeper();
+  await knex.destroy();
+}
+
 (async () => {
   trace("chamando rootServer.lifecycle.start");
   try {
-    await rootServer.lifecycle.start(onStarting);
+    await rootServer.lifecycle.start(onStarting, onStopping);
     trace("rootServer.lifecycle.start voltou");
   } catch (error) {
     traceError("rootServer.lifecycle.start FALHOU", error);

@@ -149,6 +149,22 @@ export function errorMessage(error: unknown, t: Dictionary): string {
   return (match && t.errors[Number(match[1])]) || t.genericError;
 }
 
+// Refaz uma LEITURA que o servidor não respondeu, como quando o Root está reiniciando o app (leva uns 15 s).
+// Espera 1, 2, 4, 8 e 15 s entre as tentativas, cada uma com até 50% a mais ao acaso para as telas abertas não
+// voltarem todas juntas. Erro de regra ("codigo|mensagem") é resposta do servidor: sobe na hora.
+// Nunca use em escrita: se a primeira tentativa chegou e só a resposta se perdeu, gravaria duas vezes.
+export async function retryRead<T>(read: () => Promise<T>, tries = 6, sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))): Promise<T> {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await read();
+    } catch (error) {
+      const raw = (error as { message?: unknown } | null)?.message;
+      if (attempt >= tries || (typeof raw === "string" && /^\d+\|/.test(raw))) throw error;
+      await sleep(Math.min(1000 * 2 ** (attempt - 1), 15000) * (1 + Math.random() * 0.5));
+    }
+  }
+}
+
 // A barra de nota vai de -0,5 a 10,5: a posição -0,5 é o Rock Bottom (conta como 0)
 // e a 10,5 é o Peak (conta como 10). De 0 a 10 é a nota normal, de meio em meio ponto.
 export const sliderMin = -0.5;

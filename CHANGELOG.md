@@ -2,6 +2,12 @@
 
 All notable changes to Couch Critics. The format follows [Keep a Changelog](https://keepachangelog.com), and the versions follow [semantic versioning](https://semver.org). The newest version comes first.
 
+## [2.6.7] - 2026-10-29
+
+### Changed
+- **The screen waits for the server when Root restarts the app.** On 27 and 28 October Root restarted the app about 200 times in all five communities: its community service did not answer (`UNAVAILABLE`), or it asked the app to shut down (`Hub is disconnecting`). In both cases the Root SDK ends the server process itself, so the app cannot stop it. Now the title list, the movie nights and the settings are asked again when the server does not answer, after 1, 2, 4, 8 and 15 seconds (plus up to half of that at random), which covers a restart (about 15 seconds). Errors that come from the app's own rules still show at once, and nothing that writes is ever repeated
+- **The server shuts down cleanly when Root asks.** It stops the movie-night sweeper and closes the database before leaving, and writes a line to the startup log, so a requested shutdown can be told apart from a crash
+
 ## [2.6.6] - 2026-10-16
 
 ### Added
